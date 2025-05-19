@@ -1,0 +1,44 @@
+# Ignorar node_modules en la imagen final (será instalado en el contenedor)
+node_modules/
+.pnpm/
+.pnpm-cache/
+
+# Ignorar el directorio de build de Next.js (será generado dentro del contenedor)
+.next/
+
+# Ignorar archivos de entorno, ya que deben estar configurados externamente o montados
+.env
+.env.local
+.env.*.local
+
+# Ignorar archivos de logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignorar archivos de IDEs y editores
+.vscode/
+.idea/
+
+# Ignorar cachés y directorios temporales del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Ignorar el directorio de test coverage (si no necesitas incluirlo)
+coverage/
+
+# Ignorar archivos de documentación como README.md si no son necesarios
+README.md
+
+# Ignorar carpetas de pruebas
+test/
+tests/
+
+# Ignorar cualquier archivo o directorio relacionado con build tools
+dist/
+build/
+
+# Ignorar archivos de configuración de CI/CD si no son necesarios dentro de la imagen
+.git/
+.gitignore

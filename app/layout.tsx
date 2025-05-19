@@ -1,3 +1,7 @@
+import "@/app/ui/global.css";
+import { inter } from "@/app/ui/fonts";
+import SessionAuthProvider from "@/app/providers/SessionAuthProvider";
+
 export default function RootLayout({
   children,
 }: {
@@ -5,7 +9,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={`${inter.className} antialiased`}>
+        <SessionAuthProvider>{children}</SessionAuthProvider>
+      </body>
     </html>
   );
 }
