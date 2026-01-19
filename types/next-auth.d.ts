@@ -1,39 +1,50 @@
-import { DefaultSession } from "next-auth";
+// types/next-auth.d.ts
+import "next-auth";
 import "next-auth/jwt";
 
 declare module "next-auth" {
-  interface Session {
-    user: {
-      role?: string;
-      codigoUsuario?: string;
-      username?: string;
-      token?: string;
-      tipo?: number;
-      status: number;
-      message?: string;
-    } & DefaultSession["user"];
-    username?: string?;
-  }
-
   interface User {
-    role?: string;
-    codigoUsuario?: string;
+    id: string;
     username?: string;
     token?: string;
-    status?: number;
     tipo?: number;
-    message?: number;
+    status?: number;
+    message?: string;
+    dispositivo?: {
+      codigo: number;
+      descripcion: string;
+      api_url: string;
+    };
   }
+
+  interface Session {
+    user: User;
+  }
+}
+
+interface Session {
+  user: {
+    id: string;
+    username?: string;
+    token?: string;
+    tipo?: number;
+    status?: number;
+    message?: string;
+  } & DefaultSession["user"];
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    role?: string;
-    codigoUsuario?: string;
+    id: string;
     username?: string;
     token?: string;
-    status?: number;
     tipo?: number;
-    message?: number;
+    status?: number;
+    message?: string;
+    dispositivo?: {
+      codigo: number;
+      descripcion: string;
+      api_url: string;
+    };
   }
 }

@@ -1,41 +1,78 @@
-import { Card } from "@/app/ui/componentes/Card";
-import { ProgressBar } from "@/app/ui/componentes/ProgressBar";
-import { auth } from "@/auth";
-import { Text, Metric, Flex } from "@tremor/react";
-import React, { Suspense } from "react";
-import { RevenueChartSkeleton } from "../ui/skeletons";
-import { revenue } from "../lib/placeholder-data";
-import RevenueChart from "../ui/dashboard/revenue-chart";
+"use client";
 
-export default async function page() {
-  const session = await auth();
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+
+export default function DashboardHome() {
+  const { data: session, status } = useSession(); // ← ESTA LÍNEA ES OBLIGATORIA
+  const [fechaHoy, setFechaHoy] = useState("");
+
+  useEffect(() => {
+    const hoy = new Date();
+    const formato = hoy.toLocaleDateString("es-BO", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    setFechaHoy(formato);
+  }, []);
+
+  // ⬇️ ESTAS VARIABLES DEPENDEN DE session
+  const username = session?.user?.username ?? "Desconocido";
+  const dispositivo = session?.user?.dispositivo;
 
   return (
-    <>
-      <div className="flex flex-wrap gap-4 justify-center">
-        {/* Cada tarjeta */}
-        <Card className="flex-shrink-0 max-w-xs w-full sm:max-w-md lg:max-w-xs">
-          <Text>Totales</Text>
-          <p className="text-center text-gray-400">Tickets</p>
-          <Metric>13</Metric>
-        </Card>
-        <Card className="flex-shrink-0 max-w-xs w-full sm:max-w-md lg:max-w-xs">
-          <Text>Pendientes</Text>
-          <p className="text-center text-gray-400">Tickets</p>
-          <Metric>7</Metric>
-        </Card>
-        <Card className="flex-shrink-0 max-w-xs w-full sm:max-w-md lg:max-w-xs">
-          <Text>Atendido</Text>
-          <p className="text-center text-gray-400">Tickets</p>
-          <Metric>5</Metric>
-        </Card>
+    <div className="w-full px-6 py-8 flex flex-col items-center">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">
+          Bienvenido al sistema <span className="text-blue-700">DE70</span>
+        </h1>
+        <p className="text-gray-600 mt-2 text-lg">{fechaHoy}</p>
       </div>
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
-        <Suspense fallback={<RevenueChartSkeleton />}>
-          <RevenueChart revenue={revenue} />
-        </Suspense>
+
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div className="bg-white shadow-lg rounded-lg p-6 text-center">
+          <h2 className="text-lg font-semibold text-gray-700 mb-1">
+            Usuario conectado
+          </h2>
+          <p className="text-xl text-gray-900">{username}</p>
+        </div>
+
+        <div className="bg-white shadow-lg rounded-lg p-6 text-center">
+          <h2 className="text-lg font-semibold text-gray-700 mb-1">
+            Dispositivo asignado
+          </h2>
+          <p className="text-xl text-gray-900">
+            {typeof dispositivo === "string"
+              ? dispositivo
+              : dispositivo?.descripcion ?? "No asignado"}
+          </p>
+        </div>
       </div>
-      <div>{<pre>{JSON.stringify(session, null, 2)}</pre>}</div>
-    </>
+
+      {/* DEBUG SESSION */}
+      <div className="w-full max-w-4xl mt-6 bg-gray-900 text-green-400 rounded-lg p-4 text-sm overflow-auto">
+        <h3 className="text-white font-semibold mb-2">Session (debug)</h3>
+
+        {status === "loading" && <p>Cargando sesión…</p>}
+        {status === "unauthenticated" && <p>No autenticado</p>}
+        {status === "authenticated" && (
+          <pre>{JSON.stringify(session, null, 2)}</pre>
+        )}
+      </div>
+
+      <div className="flex justify-center mt-8">
+        <Image
+          src="/images/de-70.jpg"
+          alt="Imagen DE70"
+          width={400}
+          height={300}
+          priority
+          className="rounded-md shadow-md"
+        />
+      </div>
+    </div>
   );
 }

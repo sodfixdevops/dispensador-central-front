@@ -2,9 +2,9 @@
 import Image from "next/image";
 import { UpdateUsuario, DeleteUsuario } from "@/app/ui/usuarios/buttons";
 import { formatDateToLocal, formatCurrency } from "@/app/lib/utils";
-import { FetchParametrosTable, FetchUsuariosTable } from "@/app/lib/actions";
 import { useState, useEffect } from "react";
-import { UsuariosData } from "@/app/lib/definitions";
+import { AduserData, UsuariosData } from "@/app/lib/definitions";
+import { FetchUsuariosTable } from "@/app/lib/aduser-actions";
 export default function UsuariosTable({
   query,
   currentPage,
@@ -12,16 +12,14 @@ export default function UsuariosTable({
   query: string;
   currentPage: number;
 }) {
-  const [usuarios, setUsuarios] = useState<UsuariosData[]>([]);
+  const [usuarios, setUsuarios] = useState<AduserData[]>([]);
   useEffect(() => {
-    // Fetch de cajeros
     async function cargarUsuarios() {
       const data = await FetchUsuariosTable(query, currentPage);
       setUsuarios(data);
     }
     cargarUsuarios();
-  }, []);
-  //const usuarios = await FetchUsuariosTable(query, currentPage);
+  }, [query, currentPage]);
 
   return (
     <div className="mt-6 flow-root">
@@ -42,33 +40,42 @@ export default function UsuariosTable({
                 <th scope="col" className="px-3 py-5 font-medium">
                   Estado
                 </th>
-                <th scope="col" className="relative py-3 pl-6 pr-3">
-                  <span className="sr-only">Modificar</span>
+                <th scope="col" className="relative py-3 pl-6 pr-3 w-[90px]">
+                  <span className="sr-only">Acciones</span>
                 </th>
               </tr>
             </thead>
+
             <tbody className="bg-white">
-              {usuarios?.map((user) => (
+              {usuarios.map((user) => (
                 <tr
-                  key={user.codigoUsuario}
-                  className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
+                  key={user.adusrusrn}
+                  className="w-full border-b text-sm last-of-type:border-none
+              [&:first-child>td:first-child]:rounded-tl-lg
+              [&:first-child>td:last-child]:rounded-tr-lg
+              [&:last-child>td:first-child]:rounded-bl-lg
+              [&:last-child>td:last-child]:rounded-br-lg"
                 >
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                    <div className="flex items-center gap-3">
-                      <p className="truncate max-w-36" title={user.nickUsuario}>
-                        {user.nickUsuario}
-                      </p>
-                    </div>
+                    {user.adusrnick}
                   </td>
+
                   <td className="whitespace-nowrap px-3 py-3">
-                    {user.fechaRegistro}
+                    {formatDateToLocal(String(user.adusrfreg))}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3">{user.tipo}</td>
-                  <td className="whitespace-nowrap px-3 py-3">{user.estado}</td>
+
+                  <td className="whitespace-nowrap px-3 py-3">
+                    {user.adusrtipo}
+                  </td>
+
+                  <td className="whitespace-nowrap px-3 py-3">
+                    {user.adusrstat === 1 ? "Activo" : "Inactivo"}
+                  </td>
+
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                    <div className="flex justify-end gap-3">
-                      <UpdateUsuario id={user.codigoUsuario!} />
-                      <DeleteUsuario id={user.codigoUsuario!} />
+                    <div className="flex justify-end gap-2">
+                      <UpdateUsuario id={user.adusrusrn} />
+                      <DeleteUsuario id={user.adusrusrn} />
                     </div>
                   </td>
                 </tr>

@@ -17,7 +17,7 @@ export const formatCurrency = (amount: number) => {
   });
 };
 
-export const formatDateToLocal = (
+/*xport const formatDateToLocal = (
   dateStr: string,
   locale: string = "en-US"
 ) => {
@@ -29,7 +29,7 @@ export const formatDateToLocal = (
   };
   const formatter = new Intl.DateTimeFormat(locale, options);
   return formatter.format(date);
-};
+};*/
 
 export const formatDateLatam = (isoDate: string): string => {
   const date = new Date(isoDate);
@@ -149,3 +149,16 @@ export const showMessage = (type: string, content: string) => {
     }, 5000);
   }
 };
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+export function formatDateToLocal(date: string | Date): string {
+  const d = new Date(date);
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}

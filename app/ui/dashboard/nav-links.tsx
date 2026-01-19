@@ -1,99 +1,76 @@
 "use client";
 
-import {
-  CircleStackIcon,
-  HomeIcon,
-  EyeIcon,
-  CurrencyDollarIcon,
-  FolderIcon,
-  CubeIcon,
-  UserIcon,
-  MapPinIcon,
-  EnvelopeIcon,
-  Cog8ToothIcon,
-} from "@heroicons/react/24/outline";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import clsx from "clsx";
-import React from "react";
-// Map of links to display in the side navigation.
-// Depending on the size of the application, this would be stored in a database.
-const links = [
-  { name: "Home", href: "/dashboard", icon: HomeIcon },
-  {
-    name: "Servicios",
-    href: "/dashboard/servicios",
-    icon: CurrencyDollarIcon,
-  },
-  {
-    name: "Sucursales",
-    href: "/dashboard/sucursales",
-    icon: CubeIcon,
-  },
-  {
-    name: "Agencia",
-    href: "/dashboard/agencias",
-    icon: MapPinIcon,
-  },
-  {
-    name: "Perfil Agencia",
-    href: "/dashboard/perfila",
-    icon: CircleStackIcon,
-  },
-  {
-    name: "Mensajes",
-    href: "/dashboard/mensajes",
-    icon: EnvelopeIcon,
-  },
-  {
-    name: "Videos",
-    href: "/dashboard/videos",
-    icon: EnvelopeIcon,
-  },
-  {
-    name: "Monitor",
-    href: "/dashboard/monitor",
-    icon: EyeIcon,
-  },
-  {
-    name: "Usuarios",
-    href: "/dashboard/usuarios",
-    icon: UserIcon,
-  },
-  {
-    name: "Reportes",
-    href: "/dashboard/reportes",
-    icon: FolderIcon,
-  },
-  {
-    name: "Configuracion",
-    href: "/dashboard/configuracion",
-    icon: Cog8ToothIcon,
-  },
-];
+import {
+  HomeIcon,
+  CurrencyDollarIcon,
+  InboxArrowDownIcon,
+  CheckBadgeIcon,
+  Cog8ToothIcon,
+  FolderIcon,
+  UserIcon,
+  CubeIcon,
+} from "@heroicons/react/24/outline";
+import NavItem from "./NavItem";
 
-export default function NavLinks() {
+export default function NavLinks({ collapsed }: { collapsed: boolean }) {
   const pathname = usePathname();
+
+  const links = [
+    {
+      name: "Home",
+      href: "/dashboard",
+      icon: <HomeIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Deposito",
+      href: "/dashboard/deposito",
+      icon: <CurrencyDollarIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Recolectar",
+      href: "/dashboard/recolectar",
+      icon: <InboxArrowDownIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Autorizaciones",
+      href: "/dashboard/autorizaciones",
+      icon: <CheckBadgeIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Configuracion",
+      href: "/dashboard/configuracion",
+      icon: <Cog8ToothIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Reportes",
+      href: "/dashboard/reportes",
+      icon: <FolderIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Usuarios",
+      href: "/dashboard/usuarios",
+      icon: <UserIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Dispositivos",
+      href: "/dashboard/dispositivos",
+      icon: <CubeIcon className="w-5 h-5" />,
+    },
+  ];
+
   return (
-    <>
-      {links.map((link) => {
-        const LinkIcon = link.icon;
-        return (
-          <Link
-            key={link.name}
-            href={link.href}
-            className={clsx(
-              "flex h-[38px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-2 text-xs font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3",
-              {
-                "bg-sky-100 text-blue-600": pathname === link.href,
-              }
-            )}
-          >
-            <LinkIcon className="w-6" />
-            <p className="hidden md:block">{link.name}</p>
-          </Link>
-        );
-      })}
-    </>
+    <nav className="mt-3 flex flex-col gap-1 px-2">
+      {links.map((l) => (
+        <NavItem
+          key={l.href}
+          icon={l.icon}
+          label={l.name}
+          href={l.href}
+          collapsed={collapsed}
+          active={pathname === l.href}
+        />
+      ))}
+    </nav>
   );
 }

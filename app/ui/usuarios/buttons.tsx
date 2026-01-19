@@ -16,7 +16,7 @@ export function RegisterUsuario() {
 export function UpdateUsuario({ id }: { id: string }) {
   return (
     <Link
-      href={`/dashboard/usuarios/${id}/edit`}
+      href={`/dashboard/usuarios/${id}/editar`}
       className="rounded-md border p-2 hover:bg-gray-100"
     >
       <span className="sr-only">Update</span>

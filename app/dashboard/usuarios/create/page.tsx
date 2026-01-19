@@ -1,23 +1,13 @@
-import Breadcrumbs from "@/app/ui/invoices/breadcrumbs";
-import { ToastContainer } from "react-toastify";
-import UsuarioForm from "@/app/ui/usuarios/create-form";
+import UsuarioForm from "@/app/ui/usuarios/form";
+import { lusitana } from "@/app/ui/fonts";
 
-export default async function Page() {
-  //const customers = await fetchCustomers();
+export default function Page() {
   return (
-    <main>
-      <Breadcrumbs
-        breadcrumbs={[
-          { label: "Usuarios", href: "/dashboard/usuarios" },
-          {
-            label: "Nuevo Usuario",
-            href: "/dashboard/usuarios/create",
-            active: true,
-          },
-        ]}
-      />
-      <UsuarioForm />
-      <ToastContainer />
-    </main>
+    <div className="w-full">
+      <h1 className={`${lusitana.className} text-2xl mb-6`}>
+        Usuarios / Nuevo Usuario
+      </h1>
+      <UsuarioForm mode="create" />
+    </div>
   );
 }

@@ -181,17 +181,6 @@ export type LoginUserResponse = {
   message?: string;
 };
 
-/* tabla de dispositivos POS */
-
-export type DispositivoData = {
-  idComercio: number;
-  idPos: number;
-  nombrePos: string;
-  estadoPos: number;
-  fechaRegistro: string;
-  fechaUpdate: string;
-};
-
 export type ApiResponse = {
   success?: boolean;
   status?: number;
@@ -226,11 +215,11 @@ export type AgenData = {
 };
 
 export type TrconData = {
-  prefijo?: number;
-  correlativo?: number;
-  descripcion?: string;
-  abreviacion?: string;
-  marca?: number;
+  prefijo: number;
+  correlativo: number; // ← este es el código de moneda
+  descripcion: string;
+  abreviacion: string;
+  marca: number;
   responseCode?: number;
   message?: string;
 };
@@ -287,3 +276,152 @@ export interface SubservicioFiltro {
   label: string;
   idServicio: number;
 }
+
+/*Interfaces de Dispensador local*/
+export interface dpmtr {
+  dpmtrcode?: number;
+  dpmtrntra?: number;
+  dpmtrdsid?: number;
+  dpmtrcant?: number;
+  dpmtrstat?: number;
+}
+
+export interface gbcucy {
+  gbcucygnid?: number;
+  gbcucydnid?: number;
+  gbcucycmon?: number;
+  gbcucydesc?: string;
+  gbcucyvlor?: number;
+  gbcucyseri?: string;
+  gbcucymrcb?: number;
+  gbcucycant?: number;
+}
+
+export interface Cortes {
+  gbcucygnid: number; // ID interno (PK)
+  gbcucydnid: number; // ID de denominación
+  gbcucycmon: number; // Código de moneda
+  gbcucydesc: string; // Descripción (ej. "10", "20")
+  gbcucyvlor: number; // Valor numérico (ej. 10, 20)
+  gbcucymrcb: number; // Marca de baja (0 = activo, 1 = inactivo)
+}
+
+/*Interfaces backend*/
+export interface DispositivoDto {
+  addispcode: number;
+  addispnomb: string;
+  addispusrn?: string;
+  addipsapis: string;
+  addispsrl1?: string;
+  addispsrl2?: string;
+  addispmrcb: number;
+  addispstat: number;
+  addispfreg: Date;
+  addispfupt?: Date;
+  addispusra?: string;
+  addispusru?: string;
+  nomUsuario: string;
+}
+
+export type AduserData = {
+  adusrusrn: string;
+  adusrnick: string;
+  adusrtipo: number;
+  adusrfreg: string | Date;
+  adusrusra: string;
+  adusrstat: number;
+  adusrmrcb: number;
+  addispcode?: number;
+};
+
+export interface AduserDataCrud {
+  adusrusrn?: string;
+  adusrnick: string;
+  adusrclav?: string;
+  adusrtipo: number;
+  adusrfreg?: Date;
+  adusrfupt?: Date;
+  adusrusra: string;
+  adusrusru?: string;
+  adusrstat: number;
+  adusrmrcb: number;
+  addispcode?: number; // 👈 DEBE ser opcional
+}
+
+export class LoginUserResponseDTO {
+  status?: number;
+  username?: string;
+  tipo?: number;
+  token?: string;
+  message?: string;
+  dispositivo?: {
+    codigo: number;
+    descripcion: string;
+    apis: string;
+  } | null;
+}
+
+// src/transaccion/dto/registrar-transaccion.dto.ts
+export interface RegistrarTransaccionDto {
+  usuario: string; // UUID del usuario que realiza la transacción
+  moneda: number;
+  detalle: {
+    gbcucyvlor: number; // valor del billete
+    gbcucycant: number; // cantidad de billetes
+  }[];
+}
+
+export interface DpautInterface {
+  dpautSeri?: number; // Autogenerado
+  dpautFsol?: Date;
+  dpautNdes?: number;
+  dpautUsrs?: string;
+  dpautUsra?: string;
+  dpautFaut?: Date;
+  dpautStat: number; // Requerido
+}
+
+export interface Dptrn {
+  dptrnntra: number;
+  dptrnndes: number;
+  dptrncmon: number;
+  dptrnftra: string; // o Date si mantienes tipo Date en frontend
+  dptrnimpo: number;
+  dptrnmrcb: number;
+  dptrnstat: number;
+  dptrnfreg: string; // o Date
+  dptrnusrn: string;
+}
+
+export interface FiltroTransaccion {
+  fechaInicio: Date;
+  fechaFinal: Date;
+  estado: number;
+}
+
+export interface DpautInterface {
+  dpautSeri?: number;
+  dpautFsol?: Date;
+  dpautNdes?: number;
+  dpautUsrs?: string;
+  dpautUsra?: string;
+  dpautFaut?: Date;
+  dpautStat: number;
+}
+
+export type DispositivoData = {
+  addispcode: number;
+  addispnomb: string;
+  addispusrn?: string;
+  addipsapis: string;
+  addispsrl1?: string;
+  addispsrl2?: string;
+  addispmrcb: number;
+  addispstat: number;
+  addispfreg: Date;
+  addispfupt?: Date;
+  addispusra?: string;
+  addispusru?: string;
+
+  nomUsuario: string;
+};
