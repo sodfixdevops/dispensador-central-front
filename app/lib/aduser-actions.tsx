@@ -147,6 +147,7 @@ export async function updateUsuario(id: string, data: AduserDataCrud) {
 
 export async function updateCuentaUsuario(id: string, data: AduserDataCrud) {
   try {
+    console.log(JSON.stringify(data));
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/aduser/update/${id}`,
       {

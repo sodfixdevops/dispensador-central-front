@@ -17,7 +17,12 @@ export default async function Page({
   //const customers = await fetchCustomers();
   const pref = params.id;
   const corr = params.subid;
+  
+  console.log("🔍 [Edit Page] Parámetros recibidos:", { pref, corr });
+  
   const concepto = await FetchConceptosByUnique(pref, corr);
+  
+  console.log("✅ [Edit Page] Concepto obtenido:", concepto);
 
   return (
     <main>

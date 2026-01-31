@@ -80,6 +80,75 @@ export type CustomerField = {
   name: string;
 };
 
+// ==================== REPORTES ====================
+
+/**
+ * DTO para filtros de reporte de transacciones
+ */
+export interface FiltroReporteTransacciones {
+  usuario: string;
+  fechaInicio: string;
+  fechaFin: string;
+}
+
+/**
+ * DTO para respuesta de transacción en reporte
+ */
+export interface TransaccionReporteDto {
+  dptrnntra: number;
+  dptrnftra: Date;
+  dptrnimpo: string; // Backend retorna string, ej: "80.00"
+  dptrncmon: number;
+  dptrnstat: number;
+  dptrnusrn: string;
+  adusrnick: string;
+  dptrndisp: number;
+  dptrnmrcb: number;
+}
+
+/**
+ * DTO para respuesta del reporte
+ */
+export interface ReporteTransaccionesResponseDto {
+  success: boolean;
+  data?: {
+    transacciones: TransaccionReporteDto[];
+    total: number;
+    sumaMonto: number;
+    filtros: {
+      usuario: string;
+      fechaInicio: string;
+      fechaFin: string;
+    };
+  };
+  error?: string;
+  message?: string;
+}
+
+/**
+ * DTO para dinero acumulado por dispositivo
+ */
+export interface DineroAcumuladoDispositivoDto {
+  dptrndisp: number;
+  totalTransacciones: number | string; // Backend puede retornar string
+  montoAcumulado: string; // Backend retorna string
+}
+
+/**
+ * DTO para respuesta del reporte de dinero acumulado
+ */
+export interface ReporteDineroAcumuladoResponseDto {
+  success: boolean;
+  data?: {
+    dispositivos: DineroAcumuladoDispositivoDto[];
+    totalDispositivosConDinero: number;
+    montoTotalAcumulado: string; // Backend retorna string
+    generadoEn: Date;
+  };
+  error?: string;
+  message?: string;
+}
+
 export type InvoiceForm = {
   id: string;
   customer_id: string;
@@ -365,6 +434,7 @@ export class LoginUserResponseDTO {
 export interface RegistrarTransaccionDto {
   usuario: string; // UUID del usuario que realiza la transacción
   moneda: number;
+  dispositivo?: number;
   detalle: {
     gbcucyvlor: number; // valor del billete
     gbcucycant: number; // cantidad de billetes
@@ -391,6 +461,7 @@ export interface Dptrn {
   dptrnstat: number;
   dptrnfreg: string; // o Date
   dptrnusrn: string;
+  dptrndisp: number;
 }
 
 export interface FiltroTransaccion {
@@ -424,4 +495,37 @@ export type DispositivoData = {
   addispusru?: string;
 
   nomUsuario: string;
+};
+
+export type AdbankData = {
+  adbankseri: number;
+  adbankusrn: string;
+  adbankncta: string;
+  adbanktipo: string;
+  adbankmone: string;
+  adbankfreg: Date;
+  adbankmrcb: number;
+};
+
+export type AdbankForm = {
+  adbankncta: string;
+  adbanktipo: string;
+  adbankmone: string;
+};
+
+export type AdapiData = {
+  adapiseri: number;
+  adapicurl: string;
+  adapiresp?: string;
+  adapifreg: Date;
+  adapifupt: Date;
+  adapiobse?: string;
+  adapistat: number;
+};
+
+export type AdapiCreateDto = {
+  adapicurl: string;
+  adapiresp?: string;
+  adapiobse?: string;
+  adapistat: number;
 };

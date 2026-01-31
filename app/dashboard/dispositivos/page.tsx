@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { fetchDispositivos } from "@/app/lib/dispositivo-actions";
-
+export const dynamic = "force-dynamic";
 export default async function DispositivosPage() {
   const dispositivos = await fetchDispositivos();
 

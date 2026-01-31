@@ -82,11 +82,18 @@ export async function fetchTransaccionesReporte(
   return await response.json();
 }
 
-/** GET /transaccion/estado/:stat */
-export async function fetchTransaccionesEstado(stat: number): Promise<Dptrn[]> {
+/** POST /transaccion/estado/:stat */
+export async function fetchTransaccionesEstado(
+  stat: number,
+  dispositivo?: number,
+): Promise<Dptrn[]> {
   const response = await fetch(`${API_URL}/transaccion/estado/${stat}`, {
-    method: "GET",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
     cache: "no-store",
+    body: JSON.stringify({ dispositivo }),
   });
 
   if (!response.ok) {

@@ -35,7 +35,7 @@ export default function RetransaccionesPage() {
       const resultado = await fetchTransaccionesReporte(
         fechaInicio,
         fechaFinal,
-        estado
+        estado,
       );
       setDatos(resultado);
     } catch (error) {
@@ -64,6 +64,11 @@ export default function RetransaccionesPage() {
 
     doc.save("reporte-transacciones.pdf");
   };
+
+  const totalImporte = datos.reduce(
+    (acc, item) => acc + Number(item.dptrnimpo),
+    0,
+  );
 
   return (
     <div className="w-full px-4 py-6">

@@ -51,25 +51,27 @@ export async function FetchConceptosByUnique(
 ) {
   try {
     // Enviar la solicitud GET al servicio
-    console.log(
-      `${process.env.NEXT_PUBLIC_API_URL}/conceptos/concepto/${prefijo}/${correletivo}`
-    );
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/conceptos/concepto/${prefijo}/${correletivo}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/conceptos/concepto/${prefijo}/${correletivo}`;
+    console.log("📤 [FetchConceptosByUnique] Fetching:", url);
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    
+    console.log("📥 [FetchConceptosByUnique] Response status:", response.status);
+    
     // Verificar si la solicitud fue exitosa
     if (!response.ok) {
+      console.error(`❌ [FetchConceptosByUnique] Error HTTP ${response.status}`);
       throw new Error("Error al obtener el concepto");
     }
 
     // Parsear la respuesta JSON
     const result = await response.json();
+    console.log("✅ [FetchConceptosByUnique] Data received:", result);
 
     // Mapear los datos al tipo `Agencia[]`
     const concepto: TrconData = {
@@ -80,10 +82,11 @@ export async function FetchConceptosByUnique(
       marca: result.marca,
     };
 
+    console.log("✅ [FetchConceptosByUnique] Concept mapped:", concepto);
     // Retornar los parámetros mapeados
     return concepto;
   } catch (error) {
-    console.error("Error al obtener la lista del prefijo:", error);
+    console.error("❌ [FetchConceptosByUnique] Error:", error);
     return null;
   }
 }

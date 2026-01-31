@@ -1,6 +1,6 @@
 import { crearDispositivo } from "@/app/lib/dispositivo-actions";
 import { redirect } from "next/navigation";
-
+export const dynamic = "force-dynamic";
 export default function CrearDispositivoPage() {
   async function action(formData: FormData) {
     "use server";

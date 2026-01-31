@@ -10,6 +10,8 @@ import {
   FolderIcon,
   UserIcon,
   CubeIcon,
+  DocumentMagnifyingGlassIcon,
+  EyeIcon,
 } from "@heroicons/react/24/outline";
 import NavItem from "./NavItem";
 
@@ -21,6 +23,11 @@ export default function NavLinks({ collapsed }: { collapsed: boolean }) {
       name: "Home",
       href: "/dashboard",
       icon: <HomeIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Monitor",
+      href: "/dashboard/monitor",
+      icon: <EyeIcon className="w-5 h-5" />,
     },
     {
       name: "Deposito",
@@ -36,6 +43,11 @@ export default function NavLinks({ collapsed }: { collapsed: boolean }) {
       name: "Autorizaciones",
       href: "/dashboard/autorizaciones",
       icon: <CheckBadgeIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Operaciones",
+      href: "/dashboard/operaciones",
+      icon: <DocumentMagnifyingGlassIcon className="w-5 h-5" />,
     },
     {
       name: "Configuracion",

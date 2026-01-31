@@ -5,6 +5,9 @@ import { formatDateToLocal, formatCurrency } from "@/app/lib/utils";
 import { useState, useEffect } from "react";
 import { AduserData, UsuariosData } from "@/app/lib/definitions";
 import { FetchUsuariosTable } from "@/app/lib/aduser-actions";
+import BankAccountModal from "@/app/ui/usuarios/bank-account-modal";
+import { PencilIcon } from "@heroicons/react/24/outline";
+
 export default function UsuariosTable({
   query,
   currentPage,
@@ -13,6 +16,9 @@ export default function UsuariosTable({
   currentPage: number;
 }) {
   const [usuarios, setUsuarios] = useState<AduserData[]>([]);
+  const [bankModalOpen, setBankModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<string>("");
+
   useEffect(() => {
     async function cargarUsuarios() {
       const data = await FetchUsuariosTable(query, currentPage);
@@ -20,6 +26,11 @@ export default function UsuariosTable({
     }
     cargarUsuarios();
   }, [query, currentPage]);
+
+  const handleBankAccountClick = (username: string) => {
+    setSelectedUser(username);
+    setBankModalOpen(true);
+  };
 
   return (
     <div className="mt-6 flow-root">
@@ -74,6 +85,13 @@ export default function UsuariosTable({
 
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => handleBankAccountClick(user.adusrusrn)}
+                        className="rounded-md bg-green-100 p-2 hover:bg-green-200 transition"
+                        title="Cuenta Bancaria"
+                      >
+                        <PencilIcon className="w-4 h-4 text-green-600" />
+                      </button>
                       <UpdateUsuario id={user.adusrusrn} />
                       <DeleteUsuario id={user.adusrusrn} />
                     </div>
@@ -84,6 +102,12 @@ export default function UsuariosTable({
           </table>
         </div>
       </div>
+
+      <BankAccountModal
+        isOpen={bankModalOpen}
+        onClose={() => setBankModalOpen(false)}
+        username={selectedUser}
+      />
     </div>
   );
 }

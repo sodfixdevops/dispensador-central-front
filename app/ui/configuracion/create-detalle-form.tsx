@@ -21,17 +21,28 @@ const ConceptoDetalleForm = ({
   correlativo,
 }: ConceptoDetalleForm) => {
   const router = useRouter();
+  const isEditing = !!concepto;
+
+  console.log("🔍 [ConceptoDetalleForm] Props recibidos:", {
+    concepto,
+    prefijo,
+    correlativo,
+    isEditing,
+  });
+
   const [formData, setFormData] = useState<any>({
-    prefijo: prefijo,
-    correlativo: concepto?.correlativo || "",
+    prefijo: concepto?.prefijo || prefijo || "",
+    correlativo: concepto?.correlativo || correlativo || "",
     descripcion: concepto?.descripcion || "",
     abreviacion: concepto?.abreviacion || "",
-    marca: 0,
+    marca: concepto?.marca || 0,
   });
-  const isEditing = !!concepto;
+
+  console.log("📝 [ConceptoDetalleForm] FormData inicializado:", formData);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -43,11 +54,11 @@ const ConceptoDetalleForm = ({
     setIsSubmitting(true);
     try {
       const result = isEditing
-        ? await updateConcepto(prefijo!, correlativo!, formData)
+        ? await updateConcepto(formData.prefijo, formData.correlativo, formData)
         : await createConcepto(formData);
       console.log(result);
       if (result?.success) {
-        router.push(`/dashboard/configuracion/${prefijo}/detalle`);
+        router.push(`/dashboard/configuracion/${formData.prefijo}/detalle`);
       } else {
         if (Array.isArray(result?.message)) {
           result?.message.map((msj: string) => {
@@ -158,8 +169,8 @@ const ConceptoDetalleForm = ({
               {isSubmitting
                 ? "Procesando..."
                 : isEditing
-                ? "Modificar"
-                : "Crear"}
+                  ? "Modificar"
+                  : "Crear"}
             </Button>
           </div>
         </div>
