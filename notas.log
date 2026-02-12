@@ -1,0 +1,9 @@
+# notas de desarrollador
+# fecha 11/02/2026 
+
+- se quita la opcion de deposito en el dashboard
+- se corrige el envio de fecha y hora para compatibilidad con sql server
+- se corrige en la opcion de edicion de usuarios el bug de redireccion.
+- en la opcion cliente se espera a que el usuario termine de retirar el dinero tanto de la caja como de la boca de entrada.
+- se adiciona la cuenta en el baucher
+- se habilita la opcion de baja del usuario.

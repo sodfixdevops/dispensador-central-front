@@ -31,9 +31,9 @@ export default function NavItem({
         href={href}
         className={clsx(
           "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition",
-          "hover:bg-slate-800 hover:text-white",
-          active ? "bg-slate-800 text-white" : "text-slate-200",
-          collapsed && "justify-center px-0"
+          "hover:bg-[#001f4f] hover:text-white",
+          active ? "bg-[#001f4f] text-white" : "text-white",
+          collapsed && "justify-center px-0",
         )}
       >
         {icon}

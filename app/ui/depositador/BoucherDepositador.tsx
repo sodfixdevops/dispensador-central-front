@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { dpmtr, gbcucy } from "@/app/lib/definitions";
 import { FetchCortes } from "@/app/lib/de70-actions";
 
@@ -8,24 +8,28 @@ interface Props {
   fecha: string;
   hora: string;
   usuario: string;
+  cuenta: string;
   montoTotal: number;
   moneda: string;
   datosDpmtr: dpmtr[];
   apiUrl: string;
   onCerrar: () => void;
+  numeroTransaccion?: string;
 }
 
 export default function BoucherDepositador({
   fecha,
   hora,
   usuario,
+  cuenta,
   montoTotal,
   moneda,
   datosDpmtr,
   apiUrl,
   onCerrar,
+  numeroTransaccion,
 }: Props) {
-  const boucherRef = useRef<HTMLDivElement>(null);
+  const boucherRef = useRef<HTMLDivElement | null>(null);
   const [cortes, setCortes] = useState<gbcucy[]>([]);
 
   useEffect(() => {
@@ -101,71 +105,139 @@ export default function BoucherDepositador({
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-8">
-      {/* Boucher Container */}
-      <div
-        ref={boucherRef}
-        className="bg-white rounded-lg shadow-lg p-6 sm:p-8 max-w-md w-full text-center"
-      >
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-green-700">
-          ✓ DEPÓSITO EXITOSO
-        </h2>
-
-        <div className="mb-6 border-b pb-4">
-          <p className="text-gray-700 mb-2">
-            <span className="font-semibold">Fecha:</span> {fecha}
-          </p>
-          <p className="text-gray-700 mb-2">
-            <span className="font-semibold">Hora:</span> {hora}
-          </p>
-          <p className="text-gray-700">
-            <span className="font-semibold">Usuario:</span> {usuario}
-          </p>
-        </div>
-
-        <div className="mb-6 border-b pb-4">
-          <p className="text-lg sm:text-xl font-bold text-gray-800 mb-2">
-            Total Billetes: {totalBilletes}
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold text-green-600">
-            {fmt(montoTotal)} {moneda}
-          </p>
-        </div>
-
-        {cortesActualizados.length > 0 && (
-          <div className="mb-6 text-sm text-left">
-            <p className="font-bold mb-2 text-center">Detalle:</p>
-            {cortesActualizados.map((c) => (
-              <div key={c.gbcucygnid} className="flex justify-between mb-1">
-                <span>{c.gbcucydesc}</span>
-                <span className="font-semibold">
-                  {c.gbcucycant} x {fmt(c.gbcucyvlor!)}
-                </span>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#002B76] to-[#024FD6] px-4 py-6">
+      <div className="flex-1 w-full flex flex-col md:flex-row items-start md:justify-between py-4 gap-6">
+        <div className="w-full md:flex-1 flex items-start md:items-start justify-start overflow-y-auto">
+          <div
+            ref={boucherRef}
+            className="bg-white rounded-md shadow-lg p-3 max-w-[220px] md:max-w-[320px] w-full text-left font-mono text-xs md:text-sm leading-tight mx-0"
+          >
+            <div className="ticket text-xs md:text-sm">
+              <div className="center text-sm md:text-base font-bold">
+                BANCO DE CREDITO
               </div>
-            ))}
-          </div>
-        )}
+              <div className="center text-[11px] md:text-sm">
+                PARA MAYOR INFORMACION
+              </div>
+              <div className="center text-[11px] md:text-sm">
+                TELF:2114141 - 3114141 - 4114141
+              </div>
+              <div className="center text-[11px] md:text-sm">
+                WEB: WWW.BCP.COM.BO
+              </div>
+              <div
+                className="text-[11px] md:text-sm"
+                style={{ marginTop: 6, marginBottom: 4 }}
+              >
+                FECHA: {fecha} HORA: {hora}
+              </div>
 
-        <div className="text-gray-600 text-xs mb-6">
-          Gracias por usar nuestros servicios
+              <div
+                className="text-[11px] md:text-sm"
+                style={{ marginBottom: 4 }}
+              >
+                NO.OPE: {numeroTransaccion || ""}
+              </div>
+
+              <div className="center font-bold text-sm md:text-base mt-1">
+                DEPOSITO
+              </div>
+
+              <div className="text-[11px] md:text-sm" style={{ marginTop: 6 }}>
+                Usuario : {usuario}
+              </div>
+              <div className="text-[11px] md:text-sm">
+                NRO CTA.: {cuenta || "-"}
+              </div>
+              <div className="text-[11px] md:text-sm">BILLETERA BCP</div>
+
+              <div className="text-[11px] md:text-sm" style={{ marginTop: 6 }}>
+                MONTO: {fmt(montoTotal)} {moneda}
+              </div>
+              <div className="text-[11px] md:text-sm">TIPO DE CAMBIO: 0</div>
+
+              <div
+                className="text-[11px] md:text-sm"
+                style={{ marginTop: 6, fontWeight: 700 }}
+              >
+                VALOR BILLETES MONTO
+              </div>
+
+              <div className="text-[11px] md:text-sm">
+                {cortesActualizados.map((c) => {
+                  const v = c.gbcucyvlor ?? 0;
+                  const q = c.gbcucycant ?? 0;
+                  const subtotal = v * q;
+                  return (
+                    <div
+                      key={c.gbcucygnid}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div>
+                        BS {v} X {q} =
+                      </div>
+                      <div>{fmt(subtotal)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="text-[11px] md:text-sm" style={{ marginTop: 6 }}>
+                BILLETES DEPOSITADOS: {totalBilletes}
+              </div>
+
+              <div className="text-[11px] md:text-sm" style={{ marginTop: 6 }}>
+                ------------------------------------------
+              </div>
+              <div
+                className="center text-[11px] md:text-sm"
+                style={{ marginTop: 6 }}
+              >
+                MULTIPLES CANALES DE ATENCION.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden md:flex md:flex-col md:items-stretch md:w-56 lg:w-64 print:hidden md:justify-center">
+          <button
+            onClick={handleImprimir}
+            className="w-full px-4 py-3 bg-[#F26E29] hover:bg-[#d65a22] text-white text-base font-bold rounded-lg transition-colors mb-4"
+          >
+            Imprimir
+          </button>
+
+          <button
+            onClick={onCerrar}
+            className="w-full px-4 py-3 bg-[#F26E29] hover:bg-[#d65a22] text-white text-base font-bold rounded-lg transition-colors mb-4"
+          >
+            Continuar
+          </button>
         </div>
       </div>
 
-      {/* Botones */}
-      <div className="flex flex-col sm:flex-row gap-4 mt-8">
-        <button
-          onClick={handleImprimir}
-          className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold rounded-lg transition-colors"
-        >
-          Imprimir
-        </button>
+      <div
+        className="fixed left-0 right-0 z-40 print:hidden md:hidden"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}
+      >
+        <div className="mx-auto flex gap-4 max-w-[760px] w-full px-4">
+          <button
+            onClick={handleImprimir}
+            className="flex-1 min-w-0 px-4 py-3 bg-[#F26E29] hover:bg-[#d65a22] text-white text-base font-bold rounded-lg transition-colors"
+          >
+            Imprimir
+          </button>
 
-        <button
-          onClick={onCerrar}
-          className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-lg transition-colors"
-        >
-          Continuar
-        </button>
+          <button
+            onClick={onCerrar}
+            className="flex-1 min-w-0 px-4 py-3 bg-[#F26E29] hover:bg-[#d65a22] text-white text-base font-bold rounded-lg transition-colors"
+          >
+            Continuar
+          </button>
+        </div>
       </div>
     </div>
   );

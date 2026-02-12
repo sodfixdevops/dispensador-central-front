@@ -21,6 +21,22 @@ export default function ReportesPage() {
       color: "bg-blue-600 hover:bg-blue-700",
     },
     {
+      id: "transacciones-detalle",
+      titulo: "Transacciones - Detalle",
+      descripcion: "Reporte detallado con filas de corte por transacción",
+      icono: ChartBarIcon,
+      ruta: "/dashboard/reportes/transacciones-detalle",
+      color: "bg-indigo-600 hover:bg-indigo-700",
+    },
+    {
+      id: "totales-generales",
+      titulo: "Totales Generales",
+      descripcion: "Totales por moneda en rango de fechas y estado",
+      icono: ChartBarIcon,
+      ruta: "/dashboard/reportes/totales-generales",
+      color: "bg-emerald-600 hover:bg-emerald-700",
+    },
+    {
       id: "dinero-acumulado",
       titulo: "Dinero Acumulado por Dispositivo",
       descripcion:

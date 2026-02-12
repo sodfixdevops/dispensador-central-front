@@ -24,15 +24,15 @@ export default function PantallaDetalle({
   mensajeBanco,
 }: Props) {
   return (
-    <div className="w-screen h-screen flex flex-col bg-gradient-to-b from-green-50 to-green-100">
+    <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-[#002B76] to-[#024FD6]">
       {/* Encabezado - Mínimo */}
-      <div className="bg-green-700 text-white px-4 py-3 text-center">
+      <div className="bg-[#002B76] text-white px-4 py-3 text-center">
         <h1 className="text-xl md:text-2xl font-bold">Detalle de Depósito</h1>
       </div>
 
       {/* ⚠️ Estado del Banco */}
       {enviandoBanco && mensajeBanco && (
-        <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-800 px-4 py-3 flex items-center gap-3">
+        <div className="bg-white/90 border-l-4 border-[#F26E29] text-[#002B76] px-4 py-3 flex items-center gap-3">
           <div className="animate-spin">
             <svg
               className="w-5 h-5"
@@ -61,25 +61,25 @@ export default function PantallaDetalle({
         </div>
       )}
 
-      {/* Tabla - Scrollable, ocupa TODO el espacio */}
-      <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-2">
+      {/* Tabla - Scrollable, ocupa TODO el espacio. padding reducido para evitar mucho espacio vacío */}
+      <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-2 pb-6">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden h-full">
-          <table className="w-full text-base md:text-lg">
+          <table className="w-full text-sm md:text-sm">
             <thead className="bg-gray-200 sticky top-0">
               <tr>
-                <th className="px-2 py-2 md:px-3 md:py-2 text-left font-bold text-sm md:text-base">
+                <th className="px-2 py-1 md:px-3 md:py-1 text-left font-bold text-xs sm:text-sm">
                   Código
                 </th>
-                <th className="px-2 py-2 md:px-3 md:py-2 text-left font-bold text-sm md:text-base">
+                <th className="px-2 py-1 md:px-3 md:py-1 text-left font-bold text-xs sm:text-sm">
                   Descripción
                 </th>
-                <th className="px-2 py-2 md:px-3 md:py-2 text-right font-bold text-sm md:text-base">
+                <th className="px-2 py-1 md:px-3 md:py-1 text-right font-bold text-xs sm:text-sm">
                   Cantidad
                 </th>
-                <th className="px-2 py-2 md:px-3 md:py-2 text-right font-bold text-sm md:text-base">
+                <th className="px-2 py-1 md:px-3 md:py-1 text-right font-bold text-xs sm:text-sm">
                   V. Unit.
                 </th>
-                <th className="px-2 py-2 md:px-3 md:py-2 text-right font-bold text-sm md:text-base">
+                <th className="px-2 py-1 md:px-3 md:py-1 text-right font-bold text-xs sm:text-sm">
                   Importe
                 </th>
               </tr>
@@ -90,19 +90,19 @@ export default function PantallaDetalle({
                   key={corte.gbcucygnid}
                   className="border-b hover:bg-green-50"
                 >
-                  <td className="px-2 py-2 md:px-3 md:py-2 font-semibold text-sm md:text-base">
+                  <td className="px-2 py-1 md:px-3 md:py-1 font-semibold text-xs sm:text-sm">
                     {corte.gbcucydnid}
                   </td>
-                  <td className="px-2 py-2 md:px-3 md:py-2 text-sm md:text-base">
+                  <td className="px-2 py-1 md:px-3 md:py-1 text-xs sm:text-sm">
                     {corte.gbcucydesc}
                   </td>
-                  <td className="px-2 py-2 md:px-3 md:py-2 text-right font-semibold text-sm md:text-base">
+                  <td className="px-2 py-1 md:px-3 md:py-1 text-right font-semibold text-xs sm:text-sm">
                     {corte.gbcucycant ?? 0}
                   </td>
-                  <td className="px-2 py-2 md:px-3 md:py-2 text-right text-sm md:text-base">
+                  <td className="px-2 py-1 md:px-3 md:py-1 text-right text-xs sm:text-sm">
                     {corte.gbcucyvlor}
                   </td>
-                  <td className="px-2 py-2 md:px-3 md:py-2 text-right font-bold text-sm md:text-base">
+                  <td className="px-2 py-1 md:px-3 md:py-1 text-right font-bold text-xs sm:text-sm">
                     {((corte.gbcucycant ?? 0) * corte.gbcucyvlor!).toFixed(2)}
                   </td>
                 </tr>
@@ -113,19 +113,19 @@ export default function PantallaDetalle({
       </div>
 
       {/* Total - Compacto en una línea */}
-      <div className="bg-green-600 text-white px-4 py-3 flex items-center justify-between border-b-4 border-green-800">
+      <div className="bg-[#001f4f] text-white px-4 py-3 flex items-center justify-between border-b-4 border-[#002B76]">
         <p className="text-lg md:text-xl font-bold">TOTAL A DEPOSITAR:</p>
         <p className="text-2xl md:text-3xl font-bold">
           {montoTotal.toFixed(2)}
         </p>
       </div>
 
-      {/* Botones - Fixed Bottom */}
+      {/* Botones - parte del layout (no sticky) y con padding reducido */}
       <div className="bg-white border-t-2 border-gray-300 px-3 py-3 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch">
         <button
           onClick={onContar}
           disabled={disabled}
-          className="px-8 sm:px-16 lg:px-20 py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-base md:text-lg lg:text-xl font-bold rounded-lg transition-colors shadow-md flex-1 sm:flex-none"
+          className="flex-1 px-4 sm:px-8 py-2 sm:py-3 bg-[#F26E29] hover:bg-[#d65a22] disabled:bg-gray-400 text-white text-sm md:text-base font-bold rounded-lg transition-colors shadow-md"
         >
           Contar
         </button>
@@ -133,7 +133,7 @@ export default function PantallaDetalle({
         <button
           onClick={onDepositar}
           disabled={disabled}
-          className="px-8 sm:px-16 lg:px-20 py-3 sm:py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-base md:text-lg lg:text-xl font-bold rounded-lg transition-colors shadow-md flex-1 sm:flex-none"
+          className="flex-1 px-4 sm:px-8 py-2 sm:py-3 bg-[#F26E29] hover:bg-[#d65a22] disabled:bg-gray-400 text-white text-sm md:text-base font-bold rounded-lg transition-colors shadow-md"
         >
           Depositar
         </button>
@@ -141,7 +141,7 @@ export default function PantallaDetalle({
         <button
           onClick={onCancelar}
           disabled={disabled}
-          className="px-8 sm:px-16 lg:px-20 py-3 sm:py-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white text-base md:text-lg lg:text-xl font-bold rounded-lg transition-colors shadow-md flex-1 sm:flex-none"
+          className="flex-1 px-4 sm:px-8 py-2 sm:py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white text-sm md:text-base font-bold rounded-lg transition-colors shadow-md"
         >
           Cancelar
         </button>

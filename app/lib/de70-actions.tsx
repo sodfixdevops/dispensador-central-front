@@ -2,13 +2,145 @@
 import { number, z } from "zod";
 import { Cortes, dpmtr, gbcucy } from "./definitions";
 import { revalidatePath } from "next/cache";
+import { ENV_CONFIG } from "./env-config";
 
-export async function DE70_ActionSense(apiUrl: string) {
+/**
+ * Comprueba el endpoint /health del backend principal.
+ * Devuelve true si responde OK dentro del timeout.
+ */
+export async function checkBackendHealth(
+  backendUrl?: string,
+  timeoutMs = 3000,
+): Promise<boolean> {
+  const base = (backendUrl || ENV_CONFIG.NEXT_PUBLIC_API_URL).replace(
+    /\/$/,
+    "",
+  );
+  const url = `${base}/health`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, { method: "GET", signal: controller.signal });
+    clearTimeout(timeout);
+    return res.ok;
+  } catch (err) {
+    clearTimeout(timeout);
+    console.warn("Backend health check failed:", err);
+    return false;
+  }
+}
+
+/**
+ * Comprueba el endpoint /health del API del DE70.
+ * Useful to fail fast before calling /sense when the device API is down.
+ */
+export async function checkDeviceHealth(
+  deviceApiUrl: string,
+  timeoutMs = 2000,
+): Promise<boolean> {
+  try {
+    const base = deviceApiUrl.replace(/\/$/, "");
+    const url = `${base}/health`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    const res = await fetch(url, { method: "GET", signal: controller.signal });
+    clearTimeout(timeout);
+    return res.ok;
+  } catch (err) {
+    console.warn("Device health check failed:", err);
+    return false;
+  }
+}
+
+/**
+ * Comprueba primero el backend y luego el API del dispositivo DE70.
+ * Devuelve un objeto con ambos resultados para que el frontend muestre mensajes adecuados.
+ */
+export async function checkBackendThenDevice(
+  deviceApiUrl: string,
+): Promise<{ backendOk: boolean; deviceOk: boolean }> {
+  const backendOk = await checkBackendHealth().catch((e) => {
+    console.warn("checkBackendHealth error:", e);
+    return false;
+  });
+
+  if (!backendOk) return { backendOk: false, deviceOk: false };
+
+  const deviceOk = await checkDeviceHealth(deviceApiUrl).catch((e) => {
+    console.warn("checkDeviceHealth error:", e);
+    return false;
+  });
+
+  return { backendOk: true, deviceOk };
+}
+
+/**
+ * Restaura el DE70 a estado inicial solo al inicio del flujo.
+ * Llama al endpoint POST /restaurador del API del DE70.
+ */
+export async function DE70_ActionRestaurador(
+  apiUrl: string,
+  pollIntervalSeconds = 5,
+  timeoutSeconds = 120,
+  timeoutMs = 15000,
+): Promise<Record<string, any> | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const base = apiUrl.replace(/\/$/, "");
+    const url = `${base}/restaurador?pollIntervalSeconds=${pollIntervalSeconds}&timeoutSeconds=${timeoutSeconds}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      console.warn("DE70 restaurador error:", response.status, text);
+      return { error: "Error al restaurar el DE70" };
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    clearTimeout(timeout);
+    if (error?.name === "AbortError") {
+      console.error("❌ Timeout en restaurador");
+      return { error: "Timeout en restaurador" };
+    }
+    console.error("Error en restaurador:", error);
+    return { error: error?.message || "Error en restaurador" };
+  }
+}
+
+export async function DE70_ActionSense(apiUrl: string, timeoutMs = 4000) {
+  // Fail fast if device health endpoint is unavailable
+  const deviceOk = await checkDeviceHealth(apiUrl, 2000).catch((e) => {
+    console.warn("checkDeviceHealth error:", e);
+    return false;
+  });
+
+  if (!deviceOk) {
+    console.warn("DE70 API not healthy, skipping sense call");
+    return null;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
     const response = await fetch(`${apiUrl}/sense`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     if (!response.ok) {
       throw new Error("Error al consultar estado del dispositivo");
@@ -16,8 +148,13 @@ export async function DE70_ActionSense(apiUrl: string) {
 
     const result = await response.json();
     return result; // se espera que incluya el campo SR2 con su valor
-  } catch (error) {
-    console.error("Error al consultar estado:", error);
+  } catch (error: any) {
+    clearTimeout(timeout);
+    if (error?.name === "AbortError") {
+      console.error("❌ Timeout en SENSE");
+    } else {
+      console.error("Error al consultar estado:", error);
+    }
     return null;
   }
 }
@@ -231,6 +368,10 @@ export async function DE70_FlujoIniciarTransaccion(
   mode: number,
 ): Promise<{ success: boolean; message: string }> {
   try {
+    const backendUp = await checkBackendHealth(apiUrl);
+    if (!backendUp) {
+      return { success: false, message: "Backend API no disponible" };
+    }
     const url = `${apiUrl}/flujo/iniciar-transaccion?ntra=${transactionNumber}&moneda=${currency}&modo=${mode}`;
     console.log("Llamando a:", url);
 
@@ -260,6 +401,10 @@ export async function DE70_FlujoIniciarConteo(
   moneda: number,
 ): Promise<{ success: boolean; data?: dpmtr[]; message?: string }> {
   try {
+    const backendUp = await checkBackendHealth(apiUrl);
+    if (!backendUp) {
+      return { success: false, message: "Backend API no disponible" };
+    }
     const url = `${apiUrl}/flujo/iniciar-conteo?moneda=${moneda}`;
     console.log("Llamando a:", url);
 
@@ -293,6 +438,8 @@ export async function DE70_FlujoIniciarConteo(
 
 export async function FetchCortes(apiUrl: string, moneda: number) {
   try {
+    const backendUp = await checkBackendHealth(apiUrl);
+    if (!backendUp) return [];
     const response = await fetch(`${apiUrl}/gbcucy/cortes/${moneda}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -325,6 +472,8 @@ export async function FetchCortes(apiUrl: string, moneda: number) {
 
 export async function GetMonitorCortes(apiUrl: string, ntra: number) {
   try {
+    const backendUp = await checkBackendHealth(apiUrl);
+    if (!backendUp) return [];
     const response = await fetch(`${apiUrl}/dpmtr`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -371,6 +520,8 @@ export async function DE70_ActionIniciarConteo(apiUrl: string) {
 
 export async function DE70_ActionCargarDetalle(apiUrl: string) {
   try {
+    const backendUp = await checkBackendHealth(apiUrl);
+    if (!backendUp) return [];
     const response = await fetch(`${apiUrl}/dpmtr/detalle`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -409,5 +560,84 @@ export async function DE70_ActionLockParam(
   } catch (error) {
     console.error("Error en DE70_ActionLockParam:", error);
     return false;
+  }
+}
+
+/**
+ * Obtiene los logs (Dplog) del dispositivo en un rango de fechas ISO.
+ * Se espera que el endpoint del device API sea: GET /range?from=ISO&to=ISO
+ * Devuelve un array con los registros recibidos, o [] en caso de error.
+ */
+export async function DE70_FetchLogsByRange(
+  apiUrl: string,
+  fromIso: string,
+  toIso: string,
+  deviceCode?: number | string,
+): Promise<any[]> {
+  try {
+    const base = apiUrl.replace(/\/$/, "");
+    const qs = `from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}`;
+    const deviceQs =
+      deviceCode !== undefined && deviceCode !== null
+        ? `&device=${encodeURIComponent(String(deviceCode))}`
+        : "";
+
+    // Construir candidatos tratando varios formatos de `apiUrl`:
+    // - apiUrl puede ser base (http://host:port)
+    // - apiUrl puede incluir /dplog (http://host:port/dplog)
+    // - apiUrl puede incluir /dplog/range o /range
+    const rawCandidates: string[] = [];
+
+    // Si ya apunta directamente a /dplog/range o /range, usarlo tal cual
+    if (base.match(/\/dplog\/range$/) || base.match(/\/range$/)) {
+      rawCandidates.push(`${base}?${qs}${deviceQs}`);
+    }
+
+    // Si apunta a /dplog, añadir /range
+    if (base.match(/\/dplog$/)) {
+      rawCandidates.push(`${base}/range?${qs}${deviceQs}`);
+    }
+
+    // Añadir las formas completas habituales (base + /dplog/range, base + /range)
+    rawCandidates.push(`${base}/dplog/range?${qs}${deviceQs}`);
+    rawCandidates.push(`${base}/range?${qs}${deviceQs}`);
+
+    // Dedupe manteniendo orden
+    const seen = new Set<string>();
+    const candidates = rawCandidates.filter((u) => {
+      if (seen.has(u)) return false;
+      seen.add(u);
+      return true;
+    });
+
+    for (const url of candidates) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        const res = await fetch(url, {
+          method: "GET",
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+          console.warn("DE70 logs range request failed for", url, res.status);
+          continue;
+        }
+
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch (err: any) {
+        clearTimeout(timeout);
+        console.warn("Error fetching logs from", url, err?.message || err);
+        continue;
+      }
+    }
+
+    return [];
+  } catch (error: any) {
+    console.error("Error al obtener logs por rango:", error?.message || error);
+    return [];
   }
 }

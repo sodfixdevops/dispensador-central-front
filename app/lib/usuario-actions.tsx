@@ -60,7 +60,7 @@ export async function createUsuario(formData: UsuariosData) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(parsedData.data),
-    }
+    },
   );
   console.log(response);
   const data = await response.json();
@@ -75,8 +75,11 @@ export async function createUsuario(formData: UsuariosData) {
 
 export async function updateUsuario(
   codigoUsuario: string,
-  formData: UsuariosData
+  formData: UsuariosData,
 ) {
+  console.log("updateUsuario - codigoUsuario:", codigoUsuario);
+  console.log("updateUsuario - formData:", formData);
+
   const parsedData = UpdateUsuarioFormSchema.safeParse({
     nickUsuario: formData.nickUsuario,
     password: formData.password,
@@ -90,6 +93,8 @@ export async function updateUsuario(
     const errors = parsedData.error.errors; // Obtén la lista de errores
     const errorMessages = errors.map((err) => err.message); // Mapea los mensajes
 
+    console.error("Error en validación:", errorMessages);
+
     return {
       success: false,
       status: 401,
@@ -98,6 +103,7 @@ export async function updateUsuario(
   }
 
   // Enviar la solicitud POST al servicio
+  console.log("Datos validados:", parsedData.data);
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios`, {
     method: "PUT",
@@ -106,7 +112,13 @@ export async function updateUsuario(
     },
     body: JSON.stringify(parsedData.data),
   });
+
+  console.log("Response status:", response.status);
+  console.log("Response ok:", response.ok);
+
   const data = await response.json();
+  console.log("Response data:", data);
+
   const respuesta: ApiResponse = {
     success: response.ok,
     status: response.status,
@@ -114,4 +126,49 @@ export async function updateUsuario(
   };
 
   return respuesta;
+}
+
+export async function bajaUsuario(username: string) {
+  try {
+    console.log("=== bajaUsuario ===");
+    console.log("Username:", username);
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/usuarios/baja/${username}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+    );
+
+    console.log("Response status:", response.status);
+    console.log("Response ok:", response.ok);
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Error response:", error);
+      return {
+        success: false,
+        message: error.message || "Error al dar de baja el usuario",
+      };
+    }
+
+    const data = await response.json();
+    console.log("Success response:", data);
+
+    revalidatePath("/dashboard/usuarios");
+    return {
+      success: true,
+      message: "Usuario dado de baja correctamente",
+    };
+  } catch (error) {
+    console.error("Error en bajaUsuario:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
 }

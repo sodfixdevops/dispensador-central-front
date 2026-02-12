@@ -18,11 +18,11 @@ export default function SideNav() {
 
   return (
     <aside
-      className={`flex h-full flex-col bg-slate-950 text-slate-200 border-r border-slate-800
+      className={`flex h-full flex-col bg-[#002B76] text-white border-r border-[#002B76]
       transition-all duration-300 ${collapsed ? "w-20" : "w-64"}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-950">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#002B76] bg-[#002B76]">
         {!collapsed && (
           <span className="text-lg font-semibold tracking-wide">
             Dispensador

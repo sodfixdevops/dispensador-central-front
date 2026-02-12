@@ -29,11 +29,11 @@ export default function NavLinks({ collapsed }: { collapsed: boolean }) {
       href: "/dashboard/monitor",
       icon: <EyeIcon className="w-5 h-5" />,
     },
-    {
+    /*{
       name: "Deposito",
       href: "/dashboard/deposito",
       icon: <CurrencyDollarIcon className="w-5 h-5" />,
-    },
+    },*/
     {
       name: "Recolectar",
       href: "/dashboard/recolectar",

@@ -16,7 +16,7 @@ export async function fetchDispositivos(): Promise<DispositivoData[]> {
 }
 
 export async function fetchDispositivoById(
-  id: number
+  id: number,
 ): Promise<DispositivoData> {
   const res = await fetch(`${API_URL}/dispositivos/${id}`);
 
@@ -27,6 +27,23 @@ export async function fetchDispositivoById(
 }
 
 export async function crearDispositivo(data: Partial<DispositivoData>) {
+  // Verificar límite local (máximo 2 dispositivos)
+  try {
+    const allRes = await fetch(`${API_URL}/dispositivos`);
+    if (allRes.ok) {
+      const items: DispositivoData[] = await allRes.json();
+      if (items.length >= 2) {
+        return {
+          success: false,
+          message: "Límite de 2 dispositivos alcanzado",
+        };
+      }
+    }
+  } catch (err) {
+    // Si falla la verificación, continuar y dejar que el backend valide
+    console.warn("No se pudo verificar límite de dispositivos:", err);
+  }
+
   const res = await fetch(`${API_URL}/dispositivos`, {
     method: "POST",
     headers: {
@@ -50,7 +67,7 @@ export async function crearDispositivo(data: Partial<DispositivoData>) {
 
 export async function actualizarDispositivo(
   id: number,
-  data: Partial<DispositivoData>
+  data: Partial<DispositivoData>,
 ) {
   const res = await fetch(`${API_URL}/dispositivos/${id}`, {
     method: "PUT",

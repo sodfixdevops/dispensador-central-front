@@ -31,7 +31,7 @@ const ConceptoCabeceraForm = ({
   const isEditing = !!concepto;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -146,7 +146,7 @@ const ConceptoCabeceraForm = ({
           {/*Botones de proceso*/}
           <div className="mt-6 flex justify-end gap-4">
             <Link
-              href="/dashboard/parametros"
+              href="/dashboard/configuracion"
               className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
             >
               Cancelar
@@ -155,8 +155,8 @@ const ConceptoCabeceraForm = ({
               {isSubmitting
                 ? "Procesando..."
                 : isEditing
-                ? "Modificar"
-                : "Crear"}
+                  ? "Modificar"
+                  : "Crear"}
             </Button>
           </div>
         </div>

@@ -37,7 +37,7 @@ export default function UsuarioForm({ mode, id, initialData }: Props) {
   }, []);
 
   const onChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -129,7 +129,8 @@ export default function UsuarioForm({ mode, id, initialData }: Props) {
         >
           <option value="">::: Seleccione :::</option>
           <option value="1">Administrador</option>
-          <option value="2">Usuario</option>
+          <option value="2">Cliente</option>
+          <option value="3">Recolector</option>
         </select>
       </div>
 

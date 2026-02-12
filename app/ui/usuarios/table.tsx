@@ -93,7 +93,7 @@ export default function UsuariosTable({
                         <PencilIcon className="w-4 h-4 text-green-600" />
                       </button>
                       <UpdateUsuario id={user.adusrusrn} />
-                      <DeleteUsuario id={user.adusrusrn} />
+                      <DeleteUsuario user={user} />
                     </div>
                   </td>
                 </tr>

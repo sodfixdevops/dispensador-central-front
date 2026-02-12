@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { generarReporteTransaccionesPorUsuario } from "@/app/lib/reportes-actions";
 import { TransaccionReporteDto, AduserData } from "@/app/lib/definitions";
 import { FetchUsuariosTable } from "@/app/lib/aduser-actions";
-import { toast } from "react-toastify";
+// Inline messages used instead of toast
 import * as XLSX from "xlsx";
 
 export default function ReporteTransaccionesPage() {
@@ -17,15 +17,20 @@ export default function ReporteTransaccionesPage() {
   const [transacciones, setTransacciones] = useState<TransaccionReporteDto[]>(
     [],
   );
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const hoy = new Date();
+  const hoyIso = `${hoy.getFullYear()}-${pad(hoy.getMonth() + 1)}-${pad(hoy.getDate())}`;
   const [filtros, setFiltros] = useState({
     usuario: "",
-    fechaInicio: "",
-    fechaFin: "",
+    fechaInicio: hoyIso,
+    fechaFin: hoyIso,
   });
   const [resumen, setResumen] = useState({
     total: 0,
     sumaMonto: 0,
   });
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   // Cargar lista de usuarios al montar el componente
   useEffect(() => {
@@ -37,8 +42,20 @@ export default function ReporteTransaccionesPage() {
   }, []);
 
   const handleGenerarReporte = async () => {
+    setErrorMsg("");
+    setSuccessMsg("");
     if (!filtros.usuario || !filtros.fechaInicio || !filtros.fechaFin) {
-      toast.error("Por favor complete todos los campos del filtro");
+      const msg = "Por favor complete todos los campos del filtro";
+      setErrorMsg(msg);
+      return;
+    }
+
+    // Validar orden de fechas
+    const start = new Date(filtros.fechaInicio);
+    const end = new Date(filtros.fechaFin);
+    if (start > end) {
+      const msg = "La fecha de inicio debe ser menor o igual a la fecha fin";
+      setErrorMsg(msg);
       return;
     }
 
@@ -59,15 +76,16 @@ export default function ReporteTransaccionesPage() {
           total: resultado.data.total,
           sumaMonto: sumaMonto,
         });
-        toast.success(
+        setSuccessMsg(
           `Reporte generado: ${resultado.data.total} transacciones encontradas`,
         );
       } else {
-        toast.error(resultado.error || "Error al generar el reporte");
+        const msg = resultado.error || "Error al generar el reporte";
+        setErrorMsg(msg);
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Error al generar el reporte");
+      setErrorMsg("Error al generar el reporte");
     } finally {
       setLoading(false);
     }
@@ -75,7 +93,7 @@ export default function ReporteTransaccionesPage() {
 
   const exportarExcel = () => {
     if (transacciones.length === 0) {
-      toast.warning("No hay datos para exportar");
+      setErrorMsg("No hay datos para exportar");
       return;
     }
 
@@ -98,7 +116,7 @@ export default function ReporteTransaccionesPage() {
     const yyyymmdd = `${fecha.getFullYear()}${String(fecha.getMonth() + 1).padStart(2, "0")}${String(fecha.getDate()).padStart(2, "0")}`;
 
     XLSX.writeFile(wb, `REP__Transacciones_${yyyymmdd}.xlsx`);
-    toast.success("Excel exportado correctamente");
+    setSuccessMsg("Excel exportado correctamente");
   };
 
   return (
@@ -179,6 +197,10 @@ export default function ReporteTransaccionesPage() {
             </button>
           )}
         </div>
+        {errorMsg && <p className="mt-3 text-sm text-red-600">{errorMsg}</p>}
+        {successMsg && (
+          <p className="mt-3 text-sm text-emerald-600">{successMsg}</p>
+        )}
       </div>
 
       {/* Resumen */}

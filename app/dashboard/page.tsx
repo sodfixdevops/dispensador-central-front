@@ -24,7 +24,10 @@ export default function DashboardHome() {
   const dispositivo = session?.user?.dispositivo;
 
   return (
-    <div className="w-full px-6 py-8 flex flex-col items-center">
+    <div className="w-full px-6 py-8 flex flex-col items-center relative">
+      <div className="absolute left-4 top-4 text-sm text-gray-500 font-medium select-none">
+        v26.0.0
+      </div>
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">
           Bienvenido al sistema <span className="text-blue-700">DE70</span>
@@ -47,7 +50,7 @@ export default function DashboardHome() {
           <p className="text-xl text-gray-900">
             {typeof dispositivo === "string"
               ? dispositivo
-              : dispositivo?.descripcion ?? "No asignado"}
+              : (dispositivo?.descripcion ?? "No asignado")}
           </p>
         </div>
       </div>

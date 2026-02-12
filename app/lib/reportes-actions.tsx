@@ -9,6 +9,8 @@ import {
   Sucursalfiltro,
   FiltroReporteTransacciones,
   ReporteTransaccionesResponseDto,
+  ReporteTransaccionDetalleResponseDto,
+  ReporteTotalesGeneralesResponseDto,
   ReporteDineroAcumuladoResponseDto,
 } from "./definitions";
 
@@ -125,6 +127,42 @@ export async function generarReporteTransaccionesGlobal(
 }
 
 /**
+ * Genera reporte de transacciones con detalle por cortes
+ */
+export async function generarReporteTransaccionesDetalle(
+  fechaInicio: string,
+  fechaFin: string,
+): Promise<ReporteTransaccionDetalleResponseDto> {
+  try {
+    const response = await fetch(
+      `${API_URL}/reportes/transacciones-detalle?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: "Error al generar reporte detallado de transacciones",
+      };
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error en generarReporteTransaccionesDetalle:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+/**
  * Genera reporte de dinero acumulado por dispositivo
  */
 export async function generarReporteDineroAcumulado(): Promise<ReporteDineroAcumuladoResponseDto> {
@@ -147,6 +185,41 @@ export async function generarReporteDineroAcumulado(): Promise<ReporteDineroAcum
     return await response.json();
   } catch (error) {
     console.error("Error en generarReporteDineroAcumulado:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+}
+
+/**
+ * Genera reporte de totales generales por moneda
+ */
+export async function generarReporteTotalesGenerales(
+  fechaInicio: string,
+  fechaFin: string,
+  estado: string,
+): Promise<ReporteTotalesGeneralesResponseDto> {
+  try {
+    const q = `fechaInicio=${encodeURIComponent(fechaInicio)}&fechaFin=${encodeURIComponent(fechaFin)}&estado=${encodeURIComponent(estado)}`;
+    const response = await fetch(`${API_URL}/reportes/totales-generales?${q}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: "Error al generar reporte de totales generales",
+      };
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error en generarReporteTotalesGenerales:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Error desconocido",

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-import { dpmtr, gbcucy, TrconData } from "@/app/lib/definitions";
+import { AdbankData, dpmtr, gbcucy, TrconData } from "@/app/lib/definitions";
 import {
   DE70_ActionCancelar,
   DE70_ActionStoreStart,
@@ -31,6 +31,7 @@ import PantallaMoneda from "@/app/ui/depositador/PantallaMoneda";
 import PantallaInstrucciones from "@/app/ui/depositador/PantallaInstrucciones";
 import PantallaDetalle from "@/app/ui/depositador/PantallaDetalle";
 import BoucherDepositador from "@/app/ui/depositador/BoucherDepositador";
+import ControlEstadoDE70 from "@/app/ui/depositador/ControlEstadoDE70";
 
 // Función para obtener fecha y hora actual
 function obtenerFechaHoraActual() {
@@ -46,9 +47,18 @@ export default function DepositadorPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      // Small delay to allow the message to render before navigation
+      const t = setTimeout(() => router.push("/login"), 200);
+      return () => clearTimeout(t);
+    }
+  }, [status, router]);
+
   // Estados principales
   const [pantalla, setPantalla] = useState<Pantalla>("moneda");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [comunicacionOk, setComunicacionOk] = useState(false);
 
   // Moneda
   const [moneda, setMoneda] = useState<number | null>(null);
@@ -61,6 +71,7 @@ export default function DepositadorPage() {
   const [advertenciaApiBank, setAdvertenciaApiBank] = useState(false);
   const [enviandoBanco, setEnviandoBanco] = useState(false);
   const [mensajeBanco, setMensajeBanco] = useState("");
+  const [datosBancarios, setDatosBancarios] = useState<AdbankData | null>(null);
   const [bloqueadoPorRecoleccion, setBloqueadoPorRecoleccion] = useState(false);
 
   // Conteo
@@ -72,9 +83,14 @@ export default function DepositadorPage() {
   const [mostrarBoucher, setMostrarBoucher] = useState(false);
   const [fechaHoy, setFechaHoy] = useState("");
   const [horaHoy, setHoraHoy] = useState("");
+  const [numeroTransaccion, setNumeroTransaccion] = useState<string>("");
 
   const apiUrl = session?.user?.dispositivo?.api_url;
   const dispositivo = session?.user?.dispositivo;
+
+  const handleEstadoChange = useCallback((ok: boolean) => {
+    setComunicacionOk(ok);
+  }, []);
 
   // Cargar monedas disponibles
   useEffect(() => {
@@ -97,6 +113,24 @@ export default function DepositadorPage() {
     };
     cargarConceptosReserva();
   }, []);
+
+  useEffect(() => {
+    const username = session?.user?.username;
+    if (!username) return;
+    let active = true;
+
+    const cargarDatosBancarios = async () => {
+      const data = await fetchBankByUsuario(username);
+      if (active) {
+        setDatosBancarios(data);
+      }
+    };
+
+    cargarDatosBancarios();
+    return () => {
+      active = false;
+    };
+  }, [session?.user?.username]);
 
   // Verificar transacciones pendientes de recolección (estado 2 o 3)
   useEffect(() => {
@@ -386,27 +420,58 @@ export default function DepositadorPage() {
         detalle: detalleFiltrado,
       });
 
-      if (result.success) {
+      // Extraer posible número de transacción que devuelva el backend
+      let txNumber: string | number | undefined;
+      if (result) {
+        txNumber =
+          (result as any).ntra ||
+          (result as any).ndes ||
+          (result as any).numero ||
+          (result as any).id ||
+          (result as any).transaccionId ||
+          (result as any).adapiseri;
+        if (!txNumber) {
+          txNumber =
+            (result as any).transaccion?.id ||
+            (result as any).data?.id ||
+            (result as any).data?.transaccion?.id ||
+            (result as any).ntra;
+        }
+      }
+
+      const ok =
+        (result &&
+          ((result as any).success === undefined
+            ? true
+            : (result as any).success)) ||
+        false;
+
+      if (ok) {
         const { fecha, hora } = obtenerFechaHoraActual();
         setFechaHoy(fecha);
         setHoraHoy(hora);
+        setNumeroTransaccion(txNumber ? String(txNumber) : "");
         setMostrarBoucher(true);
         setPantalla("boucher");
       } else {
-        alert(result.message || "Error al registrar transacción");
+        alert((result as any)?.message || "Error al registrar transacción");
       }
 
       // Paso 6: Consumir API BCP (3 intentos, 5s intervalo)
       if (conceptoReserva) {
         // Obtener datos bancarios del usuario
-        const datosBancarios = await fetchBankByUsuario(usuario!);
+        const datosBancariosActuales =
+          datosBancarios ?? (await fetchBankByUsuario(usuario!));
 
-        if (!datosBancarios) {
+        if (!datosBancariosActuales) {
           console.warn("⚠️ Usuario sin cuenta bancaria registrada");
           setMensajeBanco(
             "⚠️ Usuario sin cuenta bancaria registrada. Omitiendo envío al Banco.",
           );
         } else {
+          if (!datosBancarios) {
+            setDatosBancarios(datosBancariosActuales);
+          }
           setEnviandoBanco(true);
           setMensajeBanco("Enviando información al Banco (intento 1/3)...");
           let intentos = 0;
@@ -422,10 +487,10 @@ export default function DepositadorPage() {
               endpoint: conceptoReserva.descripcion || "",
               terminal:
                 dispositivo.descripcion || dispositivo.codigo.toString(),
-              accountNumber: datosBancarios.adbankncta,
-              typeAccount: datosBancarios.adbanktipo,
+              accountNumber: datosBancariosActuales.adbankncta,
+              typeAccount: datosBancariosActuales.adbanktipo,
               amount: montoFinal,
-              currencyAmount: datosBancarios.adbankmone,
+              currencyAmount: datosBancariosActuales.adbankmone,
             })) as {
               success: boolean;
               answerCode?: string;
@@ -547,37 +612,42 @@ export default function DepositadorPage() {
 
   // ========== RENDER ==========
 
+  const controlBloqueo = isSubmitting || !comunicacionOk;
+
+  let contenido: JSX.Element | null = null;
+
   if (pantalla === "moneda") {
-    return (
+    contenido = (
       <PantallaMoneda
         monedasDisponibles={monedasDisponibles}
         loading={loadingMoneda}
         onSeleccionar={handleSeleccionarMoneda}
         advertenciaApiBank={advertenciaApiBank}
+        disabled={!comunicacionOk}
       />
     );
   }
 
   if (pantalla === "instrucciones") {
-    return (
+    contenido = (
       <PantallaInstrucciones
         monedaAbrev={monedaAbrev}
         onContar={handleContarDesdeInstrucciones}
         onCancelar={handleCancelarDesdeInstrucciones}
-        disabled={isSubmitting}
+        disabled={controlBloqueo}
       />
     );
   }
 
   if (pantalla === "detalle") {
-    return (
+    contenido = (
       <PantallaDetalle
         cortesActualizados={cortesActualizados}
         montoTotal={montoFinal}
         onContar={handleContarDesdeDetalle}
         onDepositar={handleDepositar}
         onCancelar={handleCancelarDesdeDetalle}
-        disabled={isSubmitting}
+        disabled={controlBloqueo}
         enviandoBanco={enviandoBanco}
         mensajeBanco={mensajeBanco}
       />
@@ -585,19 +655,26 @@ export default function DepositadorPage() {
   }
 
   if (pantalla === "boucher" && mostrarBoucher) {
-    return (
+    contenido = (
       <BoucherDepositador
         fecha={fechaHoy}
         hora={horaHoy}
         usuario={session?.user?.username || ""}
+        cuenta={datosBancarios?.adbankncta || ""}
         montoTotal={montoFinal}
         moneda={monedaAbrev === "BOB" ? "Bs.-" : monedaAbrev}
         datosDpmtr={datosDpmtr}
         apiUrl={apiUrl!}
+        numeroTransaccion={numeroTransaccion}
         onCerrar={handleCerrarBoucher}
       />
     );
   }
 
-  return null;
+  return (
+    <>
+      {contenido}
+      <ControlEstadoDE70 apiUrl={apiUrl} onEstadoChange={handleEstadoChange} />
+    </>
+  );
 }

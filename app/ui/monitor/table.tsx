@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { DispositivoData } from "@/app/lib/definitions";
 import { DE70_ActionSense } from "@/app/lib/de70-actions";
+import Link from "next/link";
 
 export default function MonitorTable({
   dispositivos,
@@ -84,6 +85,9 @@ export default function MonitorTable({
           <th className="px-4 py-3 text-left font-semibold text-gray-700">
             Estado
           </th>
+          <th className="px-4 py-3 text-left font-semibold text-gray-700">
+            Acciones
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -140,6 +144,14 @@ export default function MonitorTable({
                   </td>
                   <td className="px-4 py-3">
                     <StatusIndicator sr2={status?.data?.interpretacion?.SR2} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/dashboard/monitor/${dispositivo.addispcode}/events`}
+                      className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"
+                    >
+                      Ver eventos
+                    </Link>
                   </td>
                 </>
               )}

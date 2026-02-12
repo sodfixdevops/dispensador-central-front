@@ -13,17 +13,23 @@ export async function registrarTransaccion(data: RegistrarTransaccionDto) {
   });
 
   if (!response.ok) {
-    const err = await response.json();
+    const err = await response.json().catch(() => ({}));
     return {
       success: false,
       message: err.message || "Error al registrar transacción",
     };
   }
 
-  return {
-    success: true,
-    message: "Transacción registrada correctamente",
-  };
+  // Intentar devolver el JSON que retorne el backend para que el caller
+  // pueda leer el número de transacción u otros datos.
+  try {
+    return await response.json();
+  } catch (err) {
+    return {
+      success: true,
+      message: "Transacción registrada correctamente",
+    };
+  }
 }
 
 export async function autorizarORechazarSolicitud(
@@ -87,20 +93,29 @@ export async function fetchTransaccionesEstado(
   stat: number,
   dispositivo?: number,
 ): Promise<Dptrn[]> {
-  const response = await fetch(`${API_URL}/transaccion/estado/${stat}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    cache: "no-store",
-    body: JSON.stringify({ dispositivo }),
-  });
+  try {
+    const response = await fetch(`${API_URL}/transaccion/estado/${stat}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+      body: JSON.stringify({ dispositivo }),
+    });
 
-  if (!response.ok) {
-    throw new Error("Error al obtener transacciones por estado");
+    if (!response.ok) {
+      console.warn(
+        "fetchTransaccionesEstado: response not ok",
+        response.status,
+      );
+      return [];
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("fetchTransaccionesEstado: fetch failed", error);
+    return [];
   }
-
-  return await response.json();
 }
 
 /** POST /transaccion/solicitar-desembolso */
