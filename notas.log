@@ -1,4 +1,12 @@
 # notas de desarrollador
+
+# comandos para subir a git
+- git status
+- git add .
+- git commit -m "mensaje del commit"
+- git push origin main
+- git remote -v
+
 # fecha 11/02/2026 
 
 - se quita la opcion de deposito en el dashboard
