@@ -14,10 +14,23 @@ import { fetchDispositivos } from "@/app/lib/dispositivo-actions";
 import RecolectarHeader from "@/app/ui/recolectar/RecolectarHeader";
 import RecolectarTable from "@/app/ui/recolectar/RecolectarTable";
 import RecolectarActions from "@/app/ui/recolectar/RecolectarActions";
-import { imprimirBoucherRecolecta } from "@/app/ui/recolectar/BoucherRecolecta";
+import {
+  imprimirBoucherRecolecta,
+  imprimirBoucherSolicitudRecolecta,
+} from "@/app/ui/recolectar/BoucherRecolecta";
 
 export default function PageRecolectar() {
   const { data: session } = useSession();
+  const usuarioActual = session?.user?.username ?? "";
+
+  const getEstadoDispositivo = (estado: number) => {
+    if (estado === 0) return "Nuevo";
+    if (estado === 1) return "Asignado";
+    if (estado === 2) return "Asignado";
+    if (estado === 3) return "Asignado";
+    if (estado === 9) return "Inactivo";
+    return `Desconocido (${estado})`;
+  };
 
   const [dispositivos, setDispositivos] = useState<DispositivoData[]>([]);
   const [dispositivoSeleccionado, setDispositivoSeleccionado] = useState<
@@ -27,13 +40,9 @@ export default function PageRecolectar() {
   const [estadoActual, setEstadoActual] = useState<number>(1);
   const [loading, setLoading] = useState(false);
 
-  /* =========================
-     CARGA CON PRIORIDAD
-     ========================= */
   const cargarTransacciones = async (dispositivo: number) => {
     setLoading(true);
 
-    // Prioridad 3 → 2 → 1, filtrado por dispositivo
     const estado3 = await fetchTransaccionesEstado(3, dispositivo);
     if (estado3.length > 0) {
       setTransacciones(estado3);
@@ -70,12 +79,13 @@ export default function PageRecolectar() {
     }
   }, [dispositivoSeleccionado]);
 
-  /* =========================
-     ACCIONES
-     ========================= */
   const handleGenerarSolicitud = async () => {
-    if (!session?.user?.username) {
-      alert("Sesión inválida.");
+    if (!session?.user?.id) {
+      alert("Sesion invalida.");
+      return;
+    }
+    if (!session.user.username) {
+      alert("Usuario invalido.");
       return;
     }
 
@@ -85,7 +95,7 @@ export default function PageRecolectar() {
     }
 
     const resp = await generarSolicitudDesembolso(
-      session.user.username,
+      session.user.id,
       dispositivoSeleccionado,
     );
 
@@ -94,9 +104,20 @@ export default function PageRecolectar() {
       return;
     }
 
-    alert(
-      `Solicitud generada correctamente\nN° Desembolso: ${resp.ndes}\nCantidad: ${resp.cantidad}`,
-    );
+    const dispositivoNombre =
+      dispositivos.find((d) => d.addispcode === dispositivoSeleccionado)
+        ?.addispnomb || "";
+
+    imprimirBoucherSolicitudRecolecta({
+      numeroDesembolso: resp.ndes || 0,
+      usuario: session.user.username,
+      dispositivo: resp.dispositivo || dispositivoSeleccionado,
+      dispositivoNombre,
+      moneda: resp.moneda || 1,
+      detalle: resp.detalle || [],
+      totalPiezas: resp.totalPiezas || 0,
+      totalImporte: resp.totalImporte || 0,
+    });
 
     await cargarTransacciones(dispositivoSeleccionado);
   };
@@ -116,7 +137,7 @@ export default function PageRecolectar() {
 
     imprimirBoucherRecolecta({
       numeroDesembolso: nroDesembolso,
-      usuario: session?.user?.username || "",
+      usuario: usuarioActual,
       transacciones,
     });
 
@@ -125,15 +146,10 @@ export default function PageRecolectar() {
     }
   };
 
-  if (!session?.user?.username) {
+  if (!usuarioActual) {
     return null;
   }
 
-  /* =========================
-     RENDER
-     ========================= */
-
-  // Pantalla de selección de dispositivo
   if (dispositivoSeleccionado === null) {
     return (
       <div className="space-y-6">
@@ -157,10 +173,10 @@ export default function PageRecolectar() {
                   {disp.addispnomb}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Código: {disp.addispcode}
+                  Codigo: {disp.addispcode}
                 </p>
                 <p className="text-sm text-gray-600">
-                  Estado: {disp.addispstat === 1 ? "Activo" : "Inactivo"}
+                  Estado: {getEstadoDispositivo(disp.addispstat)}
                 </p>
               </div>
             ))}
@@ -170,7 +186,6 @@ export default function PageRecolectar() {
     );
   }
 
-  // Pantalla de recolección (dispositivo seleccionado)
   const dispositivoActual = dispositivos.find(
     (d) => d.addispcode === dispositivoSeleccionado,
   );
@@ -192,11 +207,11 @@ export default function PageRecolectar() {
           }}
           className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition-colors"
         >
-          ← Volver a Dispositivos
+          Volver a Dispositivos
         </button>
       </div>
 
-      <RecolectarHeader usuario={session.user.username} estado={estadoActual} />
+      <RecolectarHeader usuario={usuarioActual} estado={estadoActual} />
 
       <RecolectarActions
         estado={estadoActual}

@@ -15,6 +15,12 @@ declare module "next-auth" {
       descripcion: string;
       api_url: string;
     };
+    dispositivos?: {
+      codigo: number;
+      descripcion: string;
+      api_url: string;
+    }[];
+    liacsseri?: number;
   }
 
   interface Session {
@@ -30,6 +36,7 @@ interface Session {
     tipo?: number;
     status?: number;
     message?: string;
+    liacsseri?: number;
   } & DefaultSession["user"];
 }
 
@@ -46,5 +53,11 @@ declare module "next-auth/jwt" {
       descripcion: string;
       api_url: string;
     };
+    dispositivos?: {
+      codigo: number;
+      descripcion: string;
+      api_url: string;
+    }[];
+    liacsseri?: number;
   }
 }

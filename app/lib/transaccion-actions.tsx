@@ -127,6 +127,11 @@ export async function generarSolicitudDesembolso(
   message: string;
   ndes?: number;
   cantidad?: number;
+  detalle?: { valor: number; piezas: number; importe: number }[];
+  totalPiezas?: number;
+  totalImporte?: number;
+  moneda?: number;
+  dispositivo?: number;
 }> {
   const response = await fetch(`${API_URL}/transaccion/solicitar-desembolso`, {
     method: "POST",
@@ -162,6 +167,51 @@ export async function recolectarDesembolso(
     return {
       success: false,
       message: err.message || "Error al realizar la recolección",
+    };
+  }
+
+  return await response.json();
+}
+
+export async function fetchMonitorCortesBoveda(dispositivo?: number): Promise<{
+  limite: number | null;
+  items: { dispositivo: number; cantidad: number }[];
+}> {
+  const qs =
+    dispositivo !== undefined
+      ? `?dispositivo=${encodeURIComponent(String(dispositivo))}`
+      : "";
+
+  const response = await fetch(`${API_URL}/transaccion/monitor-cortes${qs}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    return { limite: null, items: [] };
+  }
+
+  return await response.json();
+}
+
+export async function descartarTransaccion(
+  ntra: number,
+  usuario?: string,
+  motivo?: string,
+): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${API_URL}/transaccion/descartar/${ntra}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({ usuario, motivo }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      message: err.message || "Error al descartar transaccion",
     };
   }
 

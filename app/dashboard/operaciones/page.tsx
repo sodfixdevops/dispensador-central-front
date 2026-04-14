@@ -14,6 +14,9 @@ function statusLabel(status?: number) {
   if (status === 3) {
     return { text: "Error", color: "bg-red-100 text-red-800" };
   }
+  if (status === 8) {
+    return { text: "Sin respuesta", color: "bg-orange-100 text-orange-800" };
+  }
   return { text: "Pendiente", color: "bg-yellow-100 text-yellow-800" };
 }
 

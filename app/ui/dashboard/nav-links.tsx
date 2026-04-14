@@ -3,9 +3,6 @@
 import { usePathname } from "next/navigation";
 import {
   HomeIcon,
-  CurrencyDollarIcon,
-  InboxArrowDownIcon,
-  CheckBadgeIcon,
   Cog8ToothIcon,
   FolderIcon,
   UserIcon,
@@ -35,16 +32,6 @@ export default function NavLinks({ collapsed }: { collapsed: boolean }) {
       icon: <CurrencyDollarIcon className="w-5 h-5" />,
     },*/
     {
-      name: "Recolectar",
-      href: "/dashboard/recolectar",
-      icon: <InboxArrowDownIcon className="w-5 h-5" />,
-    },
-    {
-      name: "Autorizaciones",
-      href: "/dashboard/autorizaciones",
-      icon: <CheckBadgeIcon className="w-5 h-5" />,
-    },
-    {
       name: "Operaciones",
       href: "/dashboard/operaciones",
       icon: <DocumentMagnifyingGlassIcon className="w-5 h-5" />,
@@ -70,7 +57,6 @@ export default function NavLinks({ collapsed }: { collapsed: boolean }) {
       icon: <CubeIcon className="w-5 h-5" />,
     },
   ];
-
   return (
     <nav className="mt-3 flex flex-col gap-1 px-2">
       {links.map((l) => (

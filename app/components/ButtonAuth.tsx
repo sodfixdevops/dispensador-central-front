@@ -1,6 +1,7 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { cerrarSesionControlada } from "@/app/lib/session-control-client";
 
 export default function ButtonAuth() {
   const { data: session, status } = useSession();
@@ -13,7 +14,10 @@ export default function ButtonAuth() {
     return (
       <>
         Signed in as {session.user?.email} <br />
-        <button onClick={() => signOut()} className="btn btn-danger">
+        <button
+          onClick={() => cerrarSesionControlada("/login")}
+          className="btn btn-danger"
+        >
           Sign out
         </button>
       </>

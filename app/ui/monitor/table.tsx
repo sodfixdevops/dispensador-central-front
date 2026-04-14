@@ -7,8 +7,12 @@ import Link from "next/link";
 
 export default function MonitorTable({
   dispositivos,
+  cortesPorDispositivo,
+  limiteCortes,
 }: {
   dispositivos: DispositivoData[];
+  cortesPorDispositivo: Record<number, number>;
+  limiteCortes: number | null;
 }) {
   const [statuses, setStatuses] = useState<
     Map<number, { loading: boolean; data?: any; error?: string }>
@@ -87,6 +91,9 @@ export default function MonitorTable({
               Estado
             </th>
             <th className="px-4 py-3 text-left font-semibold text-gray-700">
+              Cortes Boveda
+            </th>
+            <th className="px-4 py-3 text-left font-semibold text-gray-700">
               Acciones
             </th>
           </tr>
@@ -113,7 +120,7 @@ export default function MonitorTable({
                 {status?.loading ? (
                   <>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-4 py-3 text-center text-gray-500"
                     >
                       <span className="inline-block animate-spin">⏳</span>
@@ -123,7 +130,7 @@ export default function MonitorTable({
                 ) : status?.error ? (
                   <>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-4 py-3 text-center text-red-500 text-sm"
                     >
                       ❌ {status.error}
@@ -168,6 +175,14 @@ export default function MonitorTable({
                       />
                     </td>
                     <td className="px-4 py-3">
+                      <CortesBovedaBadge
+                        cantidad={
+                          cortesPorDispositivo[dispositivo.addispcode] ?? 0
+                        }
+                        limite={limiteCortes}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
                       <Link
                         href={`/dashboard/monitor/${dispositivo.addispcode}/events`}
                         className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"
@@ -183,6 +198,32 @@ export default function MonitorTable({
         </tbody>
       </table>
     </div>
+  );
+}
+
+function CortesBovedaBadge({
+  cantidad,
+  limite,
+}: {
+  cantidad: number;
+  limite: number | null;
+}) {
+  const texto = `${cantidad}/${limite ?? "-"}`;
+  const enAlerta = limite !== null && cantidad >= limite;
+
+  return (
+    <span
+      className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+        enAlerta ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
+      }`}
+      title={
+        limite === null
+          ? "Sin limite configurado (prefijo 1, correlativo 101)"
+          : "Cantidad de cortes en boveda / limite configurado"
+      }
+    >
+      {texto}
+    </span>
   );
 }
 

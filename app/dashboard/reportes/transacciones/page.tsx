@@ -5,15 +5,38 @@ import { lusitana } from "@/app/ui/fonts";
 import { ArrowLeftIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { generarReporteTransaccionesPorUsuario } from "@/app/lib/reportes-actions";
-import { TransaccionReporteDto, AduserData } from "@/app/lib/definitions";
+import {
+  TransaccionReporteDto,
+  AduserData,
+  TrconData,
+  DispositivoData,
+} from "@/app/lib/definitions";
 import { FetchUsuariosTable } from "@/app/lib/aduser-actions";
+import { FetchConceptosByPrefijo } from "@/app/lib/conceptos-actions";
+import { fetchDispositivos } from "@/app/lib/dispositivo-actions";
 // Inline messages used instead of toast
 import * as XLSX from "xlsx";
 
 export default function ReporteTransaccionesPage() {
   const router = useRouter();
+  const getEstadoTransaccion = (estado: number) => {
+    switch (estado) {
+      case 1:
+        return "Depositado";
+      case 2:
+        return "Solicitud Desembolso";
+      case 3:
+        return "Autorizado";
+      case 4:
+        return "Recolectado";
+      default:
+        return `Desconocido (${estado})`;
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [usuarios, setUsuarios] = useState<AduserData[]>([]);
+  const [monedas, setMonedas] = useState<TrconData[]>([]);
+  const [dispositivos, setDispositivos] = useState<DispositivoData[]>([]);
   const [transacciones, setTransacciones] = useState<TransaccionReporteDto[]>(
     [],
   );
@@ -31,14 +54,30 @@ export default function ReporteTransaccionesPage() {
   });
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const getMonedaTransaccion = (codigoMoneda: number) => {
+    const moneda = monedas.find((m) => m.correlativo === codigoMoneda);
+    return moneda?.abreviacion || moneda?.descripcion || String(codigoMoneda);
+  };
+  const getDispositivoTransaccion = (codigoDispositivo: number) => {
+    const dispositivo = dispositivos.find(
+      (d) => d.addispcode === codigoDispositivo,
+    );
+    return dispositivo?.addispnomb || String(codigoDispositivo);
+  };
 
-  // Cargar lista de usuarios al montar el componente
+  // Cargar lista de usuarios, monedas (prefijo 2) y dispositivos al montar el componente
   useEffect(() => {
-    const cargarUsuarios = async () => {
-      const data = await FetchUsuariosTable("", 1);
-      setUsuarios(data);
+    const cargarDatosIniciales = async () => {
+      const [usuariosData, monedasData, dispositivosData] = await Promise.all([
+        FetchUsuariosTable("", 1),
+        FetchConceptosByPrefijo(2),
+        fetchDispositivos(),
+      ]);
+      setUsuarios(usuariosData);
+      setMonedas(monedasData);
+      setDispositivos(dispositivosData);
     };
-    cargarUsuarios();
+    cargarDatosIniciales();
   }, []);
 
   const handleGenerarReporte = async () => {
@@ -101,10 +140,10 @@ export default function ReporteTransaccionesPage() {
       "Nro Transacción": t.dptrnntra,
       Fecha: new Date(t.dptrnftra).toLocaleDateString(),
       Monto: parseFloat(t.dptrnimpo).toFixed(2),
-      Moneda: t.dptrncmon,
-      Estado: t.dptrnstat,
+      Moneda: getMonedaTransaccion(t.dptrncmon),
+      Estado: getEstadoTransaccion(t.dptrnstat),
       Usuario: t.adusrnick,
-      Dispositivo: t.dptrndisp,
+      Dispositivo: getDispositivoTransaccion(t.dptrndisp),
     }));
 
     const ws = XLSX.utils.json_to_sheet(datosExcel);
@@ -261,7 +300,7 @@ export default function ReporteTransaccionesPage() {
                       {parseFloat(t.dptrnimpo).toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
-                      {t.dptrncmon}
+                      {getMonedaTransaccion(t.dptrncmon)}
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
                       <span
@@ -270,14 +309,18 @@ export default function ReporteTransaccionesPage() {
                             ? "bg-yellow-100 text-yellow-800"
                             : t.dptrnstat === 2
                               ? "bg-green-100 text-green-800"
+                              : t.dptrnstat === 3
+                                ? "bg-blue-100 text-blue-800"
+                                : t.dptrnstat === 4
+                                  ? "bg-indigo-100 text-indigo-800"
                               : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {t.dptrnstat}
+                        {getEstadoTransaccion(t.dptrnstat)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
-                      {t.dptrndisp}
+                      {getDispositivoTransaccion(t.dptrndisp)}
                     </td>
                   </tr>
                 ))}

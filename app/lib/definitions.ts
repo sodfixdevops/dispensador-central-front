@@ -311,6 +311,7 @@ export type LoginUserResponse = {
   tipo?: number;
   status?: number;
   message?: string;
+  liacsseri?: number;
 };
 
 export type ApiResponse = {
@@ -482,6 +483,7 @@ export interface AduserDataCrud {
 
 export class LoginUserResponseDTO {
   status?: number;
+  id?: string;
   username?: string;
   tipo?: number;
   token?: string;
@@ -489,8 +491,9 @@ export class LoginUserResponseDTO {
   dispositivo?: {
     codigo: number;
     descripcion: string;
-    apis: string;
+    api_url: string;
   } | null;
+  liacsseri?: number;
 }
 
 // src/transaccion/dto/registrar-transaccion.dto.ts
@@ -509,6 +512,7 @@ export interface DpautInterface {
   dpautFsol?: Date;
   dpautNdes?: number;
   dpautUsrs?: string;
+  dpautUsrsNick?: string;
   dpautUsra?: string;
   dpautFaut?: Date;
   dpautStat: number; // Requerido
@@ -524,6 +528,7 @@ export interface Dptrn {
   dptrnstat: number;
   dptrnfreg: string; // o Date
   dptrnusrn: string;
+  dptrnusrnick?: string;
   dptrndisp: number;
 }
 
@@ -538,6 +543,7 @@ export interface DpautInterface {
   dpautFsol?: Date;
   dpautNdes?: number;
   dpautUsrs?: string;
+  dpautUsrsNick?: string;
   dpautUsra?: string;
   dpautFaut?: Date;
   dpautStat: number;

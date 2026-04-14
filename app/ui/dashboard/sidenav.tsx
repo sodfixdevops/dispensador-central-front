@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import NavLinks from "@/app/ui/dashboard/nav-links";
-import { signOut } from "next-auth/react";
+import { cerrarSesionControlada } from "@/app/lib/session-control-client";
 import {
   PowerIcon,
   ChevronLeftIcon,
@@ -13,7 +13,7 @@ export default function SideNav() {
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/login" });
+    await cerrarSesionControlada("/login");
   };
 
   return (

@@ -149,7 +149,7 @@ export default function BoucherDepositador({
               <div className="text-[11px] md:text-sm">
                 NRO CTA.: {cuenta || "-"}
               </div>
-              <div className="text-[11px] md:text-sm">BILLETERA BCP</div>
+              <div className="text-[11px] md:text-sm">------------------</div>
 
               <div className="text-[11px] md:text-sm" style={{ marginTop: 6 }}>
                 MONTO: {fmt(montoTotal)} {moneda}

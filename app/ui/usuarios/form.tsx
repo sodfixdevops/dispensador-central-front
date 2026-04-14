@@ -46,22 +46,33 @@ export default function UsuarioForm({ mode, id, initialData }: Props) {
     setLoading(true);
 
     try {
-      const payload: AduserDataCrud = {
-        adusrusrn: initialData?.adusrusrn ?? "",
-        adusrnick: form.adusrnick,
-        adusrclav: form.adusrclav || undefined,
-        adusrtipo: Number(form.adusrtipo),
-        adusrstat: Number(form.adusrstat),
-        adusrmrcb: 0,
-        adusrusra: "system",
-        addispcode: form.addispcode ? Number(form.addispcode) : undefined,
-        adusrfreg: initialData?.adusrfreg ?? new Date(),
-      };
-
       if (mode === "create") {
+        const payload: AduserDataCrud = {
+          adusrusrn: initialData?.adusrusrn ?? "",
+          adusrnick: form.adusrnick,
+          adusrclav: form.adusrclav || undefined,
+          adusrtipo: Number(form.adusrtipo),
+          adusrstat: Number(form.adusrstat),
+          adusrmrcb: 0,
+          adusrusra: "system",
+          addispcode: form.addispcode ? Number(form.addispcode) : undefined,
+          adusrfreg: initialData?.adusrfreg ?? new Date(),
+        };
         await createCuentaUsuario(payload);
       } else {
         if (!id) throw new Error("Falta id para editar");
+        const payload: AduserDataCrud = {
+          adusrusrn: initialData?.adusrusrn ?? id,
+          adusrnick: form.adusrnick,
+          adusrclav: form.adusrclav || undefined,
+          adusrtipo: Number(form.adusrtipo),
+          adusrstat: Number(form.adusrstat),
+          adusrmrcb: 0,
+          adusrusra: initialData?.adusrusra ?? "system",
+          adusrusru: "system",
+          adusrfupt: new Date(),
+          addispcode: form.addispcode ? Number(form.addispcode) : undefined,
+        };
         await updateCuentaUsuario(id, payload);
       }
 

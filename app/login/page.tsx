@@ -46,6 +46,8 @@ export default function LoginPage() {
 
       if (tipo === 2) {
         router.push("/depositador");
+      } else if (tipo === 3) {
+        router.push("/recolector");
       } else {
         router.push("/dashboard");
       }

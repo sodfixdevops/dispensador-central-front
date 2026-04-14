@@ -1,7 +1,7 @@
 "use client";
 
 import { TrconData } from "@/app/lib/definitions";
-import { signOut } from "next-auth/react";
+import { cerrarSesionControlada } from "@/app/lib/session-control-client";
 
 interface Props {
   monedasDisponibles: TrconData[];
@@ -23,7 +23,7 @@ export default function PantallaMoneda({
       {/* Botón SALIR en esquina superior derecha */}
       <div className="absolute top-4 right-4">
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => cerrarSesionControlada("/login")}
           className="px-4 py-2 bg-white/10 text-white border border-white/20 rounded-md hover:bg-white/20 text-sm"
         >
           SALIR

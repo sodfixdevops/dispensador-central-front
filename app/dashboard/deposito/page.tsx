@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -35,7 +35,7 @@ import { getBcpConfig, consumirApiBcp } from "@/app/lib/env-server-actions";
 import { construirUrlBcp, ENV_CONFIG } from "@/app/lib/env-config";
 import { showMessage, sleep } from "@/app/lib/utils";
 
-// Función para obtener fecha y hora actual
+// FunciÃ³n para obtener fecha y hora actual
 function obtenerFechaHoraActual() {
   const ahora = new Date();
   const fecha = ahora.toLocaleDateString();
@@ -77,10 +77,10 @@ export default function Page() {
   useEffect(() => {
     const cargarConfigBcp = async () => {
       const config = await getBcpConfig();
-      console.log("🔍 DEBUG - BCP_API Configuration:");
+      console.log("ðŸ” DEBUG - BCP_API Configuration:");
       console.log("NEXT_PUBLIC_API_BCP:", config.apiUrl);
-      console.log("API_BCP está configurado:", !!config.apiUrl);
-      console.log("API_BCP es vacío:", config.apiUrl === "");
+      console.log("API_BCP estÃ¡ configurado:", !!config.apiUrl);
+      console.log("API_BCP es vacÃ­o:", config.apiUrl === "");
     };
     cargarConfigBcp();
   }, []);
@@ -99,7 +99,7 @@ export default function Page() {
     const cargarConceptosReserva = async () => {
       const conceptos = await FetchConceptosByPrefijo(5); // prefijo para reserva
       setConceptosReserva(conceptos);
-      // Si API_BCP está configurado pero no hay conceptos, mostrar advertencia
+      // Si API_BCP estÃ¡ configurado pero no hay conceptos, mostrar advertencia
       const config = await getBcpConfig();
       if (config.apiUrl && conceptos.length === 0) {
         setAdvertenciaApiBank(true);
@@ -108,7 +108,7 @@ export default function Page() {
     cargarConceptosReserva();
   }, []);
 
-  // Verificar transacciones pendientes de recolección (estado 2 o 3)
+  // Verificar transacciones pendientes de recolecciÃ³n (estado 2 o 3)
   useEffect(() => {
     const verificarRecoleccionPendiente = async () => {
       if (!dispositivo || dispositivo.codigo === 0) return;
@@ -121,7 +121,7 @@ export default function Page() {
           return;
         }
 
-        // Verificar estado 3 (en recolección)
+        // Verificar estado 3 (en recolecciÃ³n)
         const estado3 = await fetchTransaccionesEstado(3, dispositivo.codigo);
         if (estado3.length > 0) {
           setBloqueadoPorRecoleccion(true);
@@ -130,7 +130,7 @@ export default function Page() {
 
         setBloqueadoPorRecoleccion(false);
       } catch (error) {
-        console.error("Error al verificar recolección pendiente:", error);
+        console.error("Error al verificar recolecciÃ³n pendiente:", error);
       }
     };
 
@@ -153,21 +153,21 @@ export default function Page() {
     );
   }
 
-  // Bloqueo por recolección pendiente
+  // Bloqueo por recolecciÃ³n pendiente
   if (bloqueadoPorRecoleccion) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-red-50">
         <div className="bg-white border-4 border-orange-500 rounded-lg p-8 shadow-2xl text-center max-w-md">
-          <div className="text-6xl mb-4">⏸️</div>
+          <div className="text-6xl mb-4">â¸ï¸</div>
           <h1 className="text-3xl font-bold text-orange-800 mb-4">
             Dispositivo Bloqueado
           </h1>
           <p className="text-lg text-gray-700 mb-6">
-            Dispositivo a la espera de recolección de efectivo
+            Dispositivo a la espera de recolecciÃ³n de efectivo
           </p>
           <p className="text-sm text-gray-500">
-            Por favor, realice la recolección del efectivo antes de continuar
-            con nuevos depósitos.
+            Por favor, realice la recolecciÃ³n del efectivo antes de continuar
+            con nuevos depÃ³sitos.
           </p>
         </div>
       </div>
@@ -185,7 +185,7 @@ export default function Page() {
     if (abreviacion === "BOB") currency = 2;
     else if (abreviacion === "USD") currency = 0;
     else {
-      alert("Moneda no válida");
+      alert("Moneda no vÃ¡lida");
       return;
     }
 
@@ -245,13 +245,13 @@ export default function Page() {
       if (result.success) {
         console.log("AQUI ENTRE LUEGO DE FLUJO");
         const data = await GetMonitorCortes(apiUrl, 1);
-        setDatosDpmtr(data); // ← sin acumulación en front
+        setDatosDpmtr(data); // â† sin acumulaciÃ³n en front
       } else {
         alert(result.message || "No se pudo iniciar el conteo.");
       }
     } catch (error) {
       console.error("Error al contar:", error);
-      alert("Ocurrió un error al iniciar el conteo.");
+      alert("OcurriÃ³ un error al iniciar el conteo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -263,7 +263,7 @@ export default function Page() {
       setIsSubmitting(true);
 
       if (!session?.user?.id) {
-        alert("Sesión inválida.");
+        alert("SesiÃ³n invÃ¡lida.");
         return;
       }
 
@@ -289,10 +289,10 @@ export default function Page() {
       // Paso B: Enviar storestart
       await DE70_ActionStoreStart(apiUrl!);
 
-      // Paso C: Registrar en tabla adapi (auditoría antes de consumir)
+      // Paso C: Registrar en tabla adapi (auditorÃ­a antes de consumir)
       // Buscar concepto con gbconcorr = 1 (el requerido)
       const conceptoReserva = conceptosReserva.find((c) => c.correlativo === 1);
-      // Configuración BCP en runtime (server action)
+      // ConfiguraciÃ³n BCP en runtime (server action)
       const bcpConfig = await getBcpConfig();
       const buildUrlBcp = (desc: string) => {
         const base = (bcpConfig.apiUrl || "").replace(/\/$/, "");
@@ -309,23 +309,23 @@ export default function Page() {
           `Deposito ${usuario} - Moneda ${monedabd}`,
         );
 
-        // ⚠️ IMPORTANTE: No hacer return aquí, el dinero ya cayó
+        // âš ï¸ IMPORTANTE: No hacer return aquÃ­, el dinero ya cayÃ³
         // Solo registrar la advertencia pero continuar el proceso
         if (!registroApi.success) {
           console.warn(
-            "⚠️ Advertencia: Error al registrar en adapi:",
+            "âš ï¸ Advertencia: Error al registrar en adapi:",
             registroApi.message,
           );
           // Continuar de todas formas
         } else {
           console.log(
-            "✅ API registrada en tabla adapi con ID:",
+            "âœ… API registrada en tabla adapi con ID:",
             registroApi.data?.adapiseri,
           );
           adapiseriGuardado = registroApi.data?.adapiseri;
         }
       } else {
-        console.warn("⚠️ No se encontró concepto con codigo = 1");
+        console.warn("âš ï¸ No se encontrÃ³ concepto con codigo = 1");
       }
 
       // Paso D: Esperar fin del proceso (NO D2)
@@ -336,44 +336,55 @@ export default function Page() {
 
       console.log("hizo unlock y la moneda es ", monedabd);
 
-      // Paso F: Registrar transacción
+      // Paso F: Registrar transacciÃ³n
       const result = await registrarTransaccion({
         usuario,
         moneda: monedabd!,
         dispositivo: dispositivo.codigo,
         detalle: detalleFiltrado,
       });
+      const nroOpe = Number((result as any)?.ntra ?? 0);
 
       if (result.success) {
-        alert("Transacción registrada correctamente.");
+        alert("TransacciÃ³n registrada correctamente.");
         const { fecha, hora } = obtenerFechaHoraActual();
         setFechaHoy(fecha);
         setHoraHoy(hora);
         setMostrarBoucher(true);
       } else {
-        alert(result.message || "No se pudo registrar la transacción.");
+        alert(result.message || "No se pudo registrar la transacciÃ³n.");
       }
 
-      // Paso G: Consumir API BCP (3 intentos, 5s intervalo) sin frenar el flujo
+      // Paso G: Consumir API BCP (1 intento) sin frenar el flujo
       if (conceptoReserva) {
+        if (!Number.isFinite(nroOpe) || nroOpe <= 0) {
+          console.warn(
+            "âš ï¸ No se obtuvo nroOpe (dptrnntra) para consumir API BCP.",
+          );
+          setMensajeBanco(
+            "âš ï¸ No se pudo obtener nÃºmero de operaciÃ³n para enviar al Banco.",
+          );
+          return;
+        }
+
         // Obtener datos bancarios del usuario
         const datosBancarios = await fetchBankByUsuario(usuario);
 
         if (!datosBancarios) {
-          console.warn("⚠️ Usuario sin cuenta bancaria registrada");
+          console.warn("âš ï¸ Usuario sin cuenta bancaria registrada");
           setMensajeBanco(
-            "⚠️ Usuario sin cuenta bancaria registrada. Omitiendo envío al Banco.",
+            "âš ï¸ Usuario sin cuenta bancaria registrada. Omitiendo envÃ­o al Banco.",
           );
         } else {
           setEnviandoBanco(true);
-          setMensajeBanco("Enviando información al Banco (intento 1/3)...");
+          setMensajeBanco("Enviando informaciÃ³n al Banco (intento 1/1)...");
           let intentos = 0;
           let exito = false;
 
-          while (intentos < 3 && !exito) {
+          while (intentos < 1 && !exito) {
             intentos++;
             setMensajeBanco(
-              `Enviando información al Banco (intento ${intentos}/3)...`,
+              `Enviando informaciÃ³n al Banco (intento ${intentos}/1)...`,
             );
 
             const resultado = (await consumirApiBcp({
@@ -384,6 +395,7 @@ export default function Page() {
               typeAccount: datosBancarios.adbanktipo,
               amount: montoCalculado,
               currencyAmount: datosBancarios.adbankmone,
+              nroOpe,
             })) as {
               success: boolean;
               answerCode?: string;
@@ -393,53 +405,68 @@ export default function Page() {
             };
 
             if (resultado.success && resultado.answerCode === "00") {
-              setMensajeBanco("✅ Respuesta exitosa del Banco.");
+              setMensajeBanco("âœ… Respuesta exitosa del Banco.");
               exito = true;
-              // ✅ ACTUALIZAR adapi con estado 2 (exitoso)
+              // âœ… ACTUALIZAR adapi con estado 2 (exitoso)
               if (adapiseriGuardado) {
                 await updateAdapi(adapiseriGuardado, {
-                  adapiresp: JSON.stringify(resultado.data || {}),
-                  adapiobse: "Respuesta exitosa del Banco",
+                  adapiresp: (resultado.answerCode || "00").slice(0, 10),
+                  adapiobse: `${resultado.answerDetail || "Respuesta exitosa del Banco"}${
+                    (resultado.data as any)?.answerOperationID
+                      ? ` | OpID: ${(resultado.data as any).answerOperationID}`
+                      : ""
+                  }${
+                    (resultado.data as any)?.answerNroAut
+                      ? ` | NroAut: ${(resultado.data as any).answerNroAut}`
+                      : ""
+                  }`,
                   adapistat: 2,
                 });
               }
             } else if (resultado.success) {
               setMensajeBanco(
-                "⚠️ El Banco rechazó la operación: " +
+                "âš ï¸ El Banco rechazÃ³ la operaciÃ³n: " +
                   (resultado.answerDetail || "Error"),
               );
               exito = true; // Respuesta recibida aunque sea rechazo
-              // ❌ ACTUALIZAR adapi con estado 3 (error) y detalles del rechazo
+              // âŒ ACTUALIZAR adapi con estado 3 (error) y detalles del rechazo
               if (adapiseriGuardado) {
                 await updateAdapi(adapiseriGuardado, {
-                  adapiresp: JSON.stringify(resultado.data || {}),
-                  adapiobse: `Banco rechazó: ${resultado.answerDetail || "Error desconocido"}`,
+                  adapiresp: (resultado.answerCode || "99").slice(0, 10),
+                  adapiobse: `Banco rechazÃ³: ${
+                    resultado.answerDetail || "Error desconocido"
+                  }${
+                    (resultado.data as any)?.answerOperationID
+                      ? ` | OpID: ${(resultado.data as any).answerOperationID}`
+                      : ""
+                  }${
+                    (resultado.data as any)?.answerNroAut
+                      ? ` | NroAut: ${(resultado.data as any).answerNroAut}`
+                      : ""
+                  }`,
                   adapistat: 3,
                 });
               }
             } else {
               setMensajeBanco(
-                `Error al contactar el Banco: ${resultado.error}. Intento ${intentos}/3.${intentos < 3 ? " Reintentando en 5s..." : ""}`,
+                `Error al contactar el Banco: ${resultado.error}. Intento ${intentos}/1.`,
               );
-              // ❌ ACTUALIZAR adapi con estado 3 (error) si es el último intento
-              if (intentos === 3 && adapiseriGuardado) {
+              // âŒ ACTUALIZAR adapi con estado 3 (error) en el intento Ãºnico
+              if (intentos === 1 && adapiseriGuardado) {
                 await updateAdapi(adapiseriGuardado, {
-                  adapiresp: "",
+                  adapiresp: (resultado.answerCode || "97").slice(0, 10),
                   adapiobse: `Error al contactar Banco: ${resultado.error}`,
                   adapistat: 3,
                 });
               }
             }
 
-            // Si no tuvo éxito y aún hay intentos, esperar 5 segundos
-            if (!exito && intentos < 3) {
-              await new Promise((r) => setTimeout(r, 5000));
-            }
+            // Intento único: no hay reintentos.
           }
 
           if (!exito) {
             setMensajeBanco(
-              "❌ No se pudo contactar al Banco tras 3 intentos. Volviendo al inicio en 3 segundos...",
+              "âŒ No se pudo contactar al Banco en el intento único. Volviendo al inicio en 3 segundos...",
             );
             // Esperar 3 segundos antes de volver al inicio
             await new Promise((r) => setTimeout(r, 3000));
@@ -449,12 +476,12 @@ export default function Page() {
         }
       } else {
         console.warn(
-          "⚠️ No se encontró concepto con codigo = 1 para consumir BCP",
+          "âš ï¸ No se encontrÃ³ concepto con codigo = 1 para consumir BCP",
         );
       }
     } catch (error) {
       console.error("Error al depositar", error);
-      alert("Ocurrió un error inesperado.");
+      alert("OcurriÃ³ un error inesperado.");
     } finally {
       setIsSubmitting(false);
     }
@@ -466,23 +493,23 @@ export default function Page() {
       setIsSubmitting(true);
       setIsCancelling(true);
 
-      // 1️⃣ ENVIAR CANCEL → abre compuerta
+      // 1ï¸âƒ£ ENVIAR CANCEL â†’ abre compuerta
       await DE70_ActionCancelar(apiUrl!);
-      console.log("🟡 CANCEL enviado, compuerta abierta");
+      console.log("ðŸŸ¡ CANCEL enviado, compuerta abierta");
 
-      // 2️⃣ ESPERAR que el operador cierre la compuerta
+      // 2ï¸âƒ£ ESPERAR que el operador cierre la compuerta
       await waitForEscrowDoorClosed(apiUrl!);
-      console.log("✅ Operador cerró la compuerta");
+      console.log("âœ… Operador cerrÃ³ la compuerta");
 
-      // 3️⃣ ENVIAR UNLOCK → volver a estado limpio
+      // 3ï¸âƒ£ ENVIAR UNLOCK â†’ volver a estado limpio
       await DE70_ActionUnlock(apiUrl!);
-      console.log("🔓 UNLOCK enviado");
+      console.log("ðŸ”“ UNLOCK enviado");
 
-      // 4️⃣ CONFIRMAR estado inicial (login + standby)
+      // 4ï¸âƒ£ CONFIRMAR estado inicial (login + standby)
       await waitForCancelComplete(apiUrl!);
-      console.log("✅ Equipo en estado inicial");
+      console.log("âœ… Equipo en estado inicial");
 
-      // 5️⃣ LIMPIAR UI
+      // 5ï¸âƒ£ LIMPIAR UI
       setMoneda(null);
       setMonedaBd(null);
       setMonedaAbrev("");
@@ -493,7 +520,7 @@ export default function Page() {
       setMostrarBoucher(false);
       setMontoFinal(0);
     } catch (error) {
-      console.error("❌ Error en cancelar", error);
+      console.error("âŒ Error en cancelar", error);
     } finally {
       setIsCancelling(false);
       setIsSubmitting(false);
@@ -530,7 +557,7 @@ export default function Page() {
   // Vista principal
   return (
     <>
-      {/* 🔴 BOUCHER: SIEMPRE EN EL ÁRBOL */}
+      {/* ðŸ”´ BOUCHER: SIEMPRE EN EL ÃRBOL */}
       {mostrarBoucher && (
         <BoucherDeposito
           fecha={fechaHoy}
@@ -544,13 +571,13 @@ export default function Page() {
             // cerrar boucher
             setMostrarBoucher(false);
 
-            // volver a selección de moneda
+            // volver a selecciÃ³n de moneda
             setMoneda(null);
             setMonedaBd(null);
             setMonedaAbrev("");
             setBloqueado(false);
 
-            // limpiar estado transacción
+            // limpiar estado transacciÃ³n
             setDatosDpmtr([]);
             setCortesActualizados([]);
             setMontoFinal(0);
@@ -560,21 +587,21 @@ export default function Page() {
         />
       )}
 
-      {/* 🔵 PANTALLA SELECCIÓN MONEDA */}
+      {/* ðŸ”µ PANTALLA SELECCIÃ“N MONEDA */}
       {!moneda || !bloqueado ? (
         <div className="h-screen flex items-center justify-center flex-col gap-4">
-          {/* ⚠️ Advertencia si API_BCP está configurado pero no hay conceptos */}
+          {/* âš ï¸ Advertencia si API_BCP estÃ¡ configurado pero no hay conceptos */}
           {advertenciaApiBank && (
             <div className="absolute top-4 right-4 left-4 bg-yellow-100 text-yellow-800 p-4 rounded-md border-l-4 border-yellow-500">
               <p className="font-semibold">
-                ⚠️ Advertencia: APIs del Banco no cargadas
+                âš ï¸ Advertencia: APIs del Banco no cargadas
               </p>
               <p className="text-sm">
                 No se encontraron conceptos con prefijo 5 en la tabla de
                 conceptos.
               </p>
               <p className="text-sm">
-                El sistema continuará funcionando sin auditoría de API.
+                El sistema continuarÃ¡ funcionando sin auditorÃ­a de API.
               </p>
             </div>
           )}
@@ -598,7 +625,7 @@ export default function Page() {
           {loading && <p>Aplicando bloqueo de moneda...</p>}
         </div>
       ) : (
-        /* 🟢 PANTALLA PRINCIPAL DEPÓSITO */
+        /* ðŸŸ¢ PANTALLA PRINCIPAL DEPÃ“SITO */
         <div className="w-full">
           <div className="flex w-full items-center justify-between">
             <h1 className={`${lusitana.className} text-2xl`}>
@@ -606,18 +633,18 @@ export default function Page() {
             </h1>
           </div>
 
-          {/* ⚠️ Advertencia si API_BCP está configurado pero no hay conceptos */}
+          {/* âš ï¸ Advertencia si API_BCP estÃ¡ configurado pero no hay conceptos */}
           {advertenciaApiBank && (
             <div className="mt-4 bg-yellow-100 text-yellow-800 p-4 rounded-md border-l-4 border-yellow-500">
               <p className="font-semibold">
-                ⚠️ Advertencia: APIs del Banco no cargadas
+                âš ï¸ Advertencia: APIs del Banco no cargadas
               </p>
               <p className="text-sm">
                 No se encontraron conceptos con prefijo 5 en la tabla de
                 conceptos.
               </p>
               <p className="text-sm">
-                El sistema continuará funcionando sin auditoría de API.
+                El sistema continuarÃ¡ funcionando sin auditorÃ­a de API.
               </p>
             </div>
           )}
@@ -686,3 +713,4 @@ export default function Page() {
     </>
   );
 }
+

@@ -161,7 +161,22 @@ export async function updateCuentaUsuario(id: string, data: AduserDataCrud) {
     );
 
     if (!response.ok) {
-      throw new Error("Error al actualizar usuario");
+      const raw = await response.text();
+      let backendMessage = "";
+      try {
+        const parsed = JSON.parse(raw);
+        backendMessage =
+          parsed?.message ||
+          parsed?.error ||
+          (Array.isArray(parsed) ? parsed.join(", ") : "");
+      } catch {
+        backendMessage = raw;
+      }
+      throw new Error(
+        backendMessage
+          ? `Error al actualizar usuario (${response.status}): ${backendMessage}`
+          : `Error al actualizar usuario (${response.status})`,
+      );
     }
 
     return await response.json();
@@ -186,6 +201,12 @@ export async function loginUsuario(
     descripcion: string;
     api_url: string;
   };
+  dispositivos?: {
+    codigo: number;
+    descripcion: string;
+    api_url: string;
+  }[];
+  liacsseri?: number;
 }> {
   try {
     const response = await fetch(

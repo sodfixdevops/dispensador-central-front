@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { generarReporteTransaccionesDetalle } from "@/app/lib/reportes-actions";
@@ -8,8 +8,20 @@ import {
   ReporteTransaccionDetalleResponseDto,
   TransaccionDetalleDto,
 } from "@/app/lib/definitions";
-// Inline messages used instead of toast
 import * as XLSX from "xlsx";
+
+type CorteResumen = {
+  ctb10: number;
+  impo10: number;
+  ctb20: number;
+  impo20: number;
+  ctb50: number;
+  impo50: number;
+  ctb100: number;
+  impo100: number;
+  ctb200: number;
+  impo200: number;
+};
 
 export default function ReporteTransaccionesDetallePage() {
   const router = useRouter();
@@ -17,9 +29,11 @@ export default function ReporteTransaccionesDetallePage() {
   const [transacciones, setTransacciones] = useState<TransaccionDetalleDto[]>(
     [],
   );
+
   const pad = (n: number) => String(n).padStart(2, "0");
   const hoy = new Date();
   const hoyIso = `${hoy.getFullYear()}-${pad(hoy.getMonth() + 1)}-${pad(hoy.getDate())}`;
+
   const [filtros, setFiltros] = useState({
     fechaInicio: hoyIso,
     fechaFin: hoyIso,
@@ -30,8 +44,6 @@ export default function ReporteTransaccionesDetallePage() {
 
   const formatDateForDisplay = (s?: string) => {
     if (!s) return "";
-    // Accept formats like YYYY-MM-DD or full ISO
-    // Try parsing; fallback to manual split
     const asIso = s.split("T")[0];
     const parts = asIso.split("-");
     if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -42,28 +54,64 @@ export default function ReporteTransaccionesDetallePage() {
 
   const formatTimeForDisplay = (s?: string) => {
     if (!s) return "";
-    // Match HH:MM:SS
     const m = s.match(/(\d{2}:\d{2}:\d{2})/);
     if (m) return m[1];
-    // fallback: remove fractional seconds
     return s.split(".")[0];
+  };
+
+  const getCortesFijos = (t: TransaccionDetalleDto): CorteResumen => {
+    const out: CorteResumen = {
+      ctb10: 0,
+      impo10: 0,
+      ctb20: 0,
+      impo20: 0,
+      ctb50: 0,
+      impo50: 0,
+      ctb100: 0,
+      impo100: 0,
+      ctb200: 0,
+      impo200: 0,
+    };
+
+    for (const d of t.detalles || []) {
+      const valor = Number(d.dptrdvlor || 0);
+      const cant = Number(d.dptrdcant || 0);
+      const impo = Number(d.dptrdimpo || 0);
+
+      if (valor === 10) {
+        out.ctb10 += cant;
+        out.impo10 += impo;
+      } else if (valor === 20) {
+        out.ctb20 += cant;
+        out.impo20 += impo;
+      } else if (valor === 50) {
+        out.ctb50 += cant;
+        out.impo50 += impo;
+      } else if (valor === 100) {
+        out.ctb100 += cant;
+        out.impo100 += impo;
+      } else if (valor === 200) {
+        out.ctb200 += cant;
+        out.impo200 += impo;
+      }
+    }
+
+    return out;
   };
 
   const handleGenerar = async () => {
     setErrorMsg("");
     setSuccessMsg("");
+
     if (!filtros.fechaInicio || !filtros.fechaFin) {
-      const msg = "Complete fecha inicio y fecha fin";
-      setErrorMsg(msg);
+      setErrorMsg("Complete fecha inicio y fecha fin");
       return;
     }
 
-    // Validar orden de fechas
     const start = new Date(filtros.fechaInicio);
     const end = new Date(filtros.fechaFin);
     if (start > end) {
-      const msg = "La fecha de inicio debe ser menor o igual a la fecha fin";
-      setErrorMsg(msg);
+      setErrorMsg("La fecha de inicio debe ser menor o igual a la fecha fin");
       return;
     }
 
@@ -80,8 +128,7 @@ export default function ReporteTransaccionesDetallePage() {
         setResumen({ total: res.data.total, sumaMonto: res.data.sumaMonto });
         setSuccessMsg(`Se encontraron ${res.data.total} transacciones`);
       } else {
-        const msg = res.error || res.message || "Error al generar reporte";
-        setErrorMsg(msg);
+        setErrorMsg(res.error || res.message || "Error al generar reporte");
       }
     } catch (error) {
       console.error(error);
@@ -97,33 +144,84 @@ export default function ReporteTransaccionesDetallePage() {
       return;
     }
 
-    const filas: any[] = [];
-    transacciones.forEach((t) => {
+    const filas = transacciones.map((t) => {
       const displayUsuario = t.usuario_nombre || t.usuario;
-      filas.push({
-        Usuario: displayUsuario,
-        Terminal: t.dptrndisp,
-        "Nombre Terminal": t.addispnomb || "",
-        NOperacion: t.dptrnntra,
-        "Cuenta Destino": t.adbankncta || "",
-        Monto: Number(t.dptrnimpo).toFixed(2),
-        Fecha: formatDateForDisplay(t.fecha),
-        Hora: formatTimeForDisplay(t.hora),
-        Detalle: "--",
-      });
-      t.detalles.forEach((d) => {
-        filas.push({
-          Usuario: displayUsuario,
-          Terminal: t.dptrndisp,
-          "Nombre Terminal": t.addispnomb || "",
-          NOperacion: t.dptrnntra,
-          "Cuenta Destino": t.adbankncta || "",
-          Monto: "",
-          Fecha: formatDateForDisplay(t.fecha),
-          Hora: formatTimeForDisplay(t.hora),
-          Detalle: `${d.dptrdcant} x ${d.dptrdvlor} = ${Number(d.dptrdimpo).toFixed(2)}`,
-        });
-      });
+      const cortes = getCortesFijos(t);
+
+      return {
+        USUARIO: displayUsuario,
+        TERMINAL: t.dptrndisp,
+        "NOMBRE TERMINAL": t.addispnomb || "",
+        NOPERACION: t.dptrnntra,
+        "CUENTA DESTINO": t.adbankncta || "",
+        MONTO: Number(t.dptrnimpo).toFixed(2),
+        FECHA: formatDateForDisplay(t.fecha),
+        HORA: formatTimeForDisplay(t.hora),
+        OBV: "",
+        CTBs10: cortes.ctb10,
+        ImpoBs10: cortes.impo10.toFixed(2),
+        CTBs20: cortes.ctb20,
+        ImpoBs20: cortes.impo20.toFixed(2),
+        CTBs50: cortes.ctb50,
+        ImpoBs50: cortes.impo50.toFixed(2),
+        CTBs100: cortes.ctb100,
+        ImpoBs100: cortes.impo100.toFixed(2),
+        CTBs200: cortes.ctb200,
+        ImpoBs200: cortes.impo200.toFixed(2),
+      };
+    });
+
+    const totales = transacciones.reduce(
+      (acc, t) => {
+        const cortes = getCortesFijos(t);
+        acc.monto += Number(t.dptrnimpo || 0);
+        acc.ctb10 += cortes.ctb10;
+        acc.impo10 += cortes.impo10;
+        acc.ctb20 += cortes.ctb20;
+        acc.impo20 += cortes.impo20;
+        acc.ctb50 += cortes.ctb50;
+        acc.impo50 += cortes.impo50;
+        acc.ctb100 += cortes.ctb100;
+        acc.impo100 += cortes.impo100;
+        acc.ctb200 += cortes.ctb200;
+        acc.impo200 += cortes.impo200;
+        return acc;
+      },
+      {
+        monto: 0,
+        ctb10: 0,
+        impo10: 0,
+        ctb20: 0,
+        impo20: 0,
+        ctb50: 0,
+        impo50: 0,
+        ctb100: 0,
+        impo100: 0,
+        ctb200: 0,
+        impo200: 0,
+      },
+    );
+
+    filas.push({
+      USUARIO: "TOTAL",
+      TERMINAL: 0,
+      "NOMBRE TERMINAL": "",
+      NOPERACION: 0,
+      "CUENTA DESTINO": "",
+      MONTO: Number(totales.monto).toFixed(2),
+      FECHA: "",
+      HORA: "",
+      OBV: "",
+      CTBs10: totales.ctb10,
+      ImpoBs10: Number(totales.impo10).toFixed(2),
+      CTBs20: totales.ctb20,
+      ImpoBs20: Number(totales.impo20).toFixed(2),
+      CTBs50: totales.ctb50,
+      ImpoBs50: Number(totales.impo50).toFixed(2),
+      CTBs100: totales.ctb100,
+      ImpoBs100: Number(totales.impo100).toFixed(2),
+      CTBs200: totales.ctb200,
+      ImpoBs200: Number(totales.impo200).toFixed(2),
     });
 
     const ws = XLSX.utils.json_to_sheet(filas);
@@ -152,9 +250,7 @@ export default function ReporteTransaccionesDetallePage() {
         <h2 className="text-lg font-semibold mb-4">Filtros</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">
-              Fecha Inicio
-            </label>
+            <label className="block text-sm font-medium mb-2">Fecha Inicio</label>
             <input
               type="date"
               value={filtros.fechaInicio}
@@ -176,6 +272,7 @@ export default function ReporteTransaccionesDetallePage() {
             />
           </div>
         </div>
+
         <div className="flex gap-3 mt-4">
           <button
             onClick={handleGenerar}
@@ -194,6 +291,12 @@ export default function ReporteTransaccionesDetallePage() {
             </button>
           )}
         </div>
+
+        <div className="mt-3 text-sm text-gray-700">
+          <span className="mr-6">Total operaciones: {resumen.total}</span>
+          <span>Suma monto: {Number(resumen.sumaMonto || 0).toFixed(2)}</span>
+        </div>
+
         {errorMsg && <p className="mt-3 text-sm text-red-600">{errorMsg}</p>}
         {successMsg && (
           <p className="mt-3 text-sm text-emerald-600">{successMsg}</p>
@@ -203,76 +306,58 @@ export default function ReporteTransaccionesDetallePage() {
       {transacciones.length > 0 && (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-[2200px] divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Usuario
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Terminal
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Nombre Terminal
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    NOperacion
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Cuenta Destino
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    Monto
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Fecha
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Hora
-                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">USUARIO</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TERMINAL</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">NOMBRE TERMINAL</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">NOPERACION</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CUENTA DESTINO</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">MONTO</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">FECHA</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HORA</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">OBV</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">CTBs10</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">ImpoBs10</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">CTBs20</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">ImpoBs20</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">CTBs50</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">ImpoBs50</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">CTBs100</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">ImpoBs100</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">CTBs200</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">ImpoBs200</th>
                 </tr>
               </thead>
+
               <tbody className="bg-white divide-y divide-gray-200">
-                {transacciones.map((t) => (
-                  <React.Fragment key={`tx-${t.dptrnntra}`}>
-                    <tr className="hover:bg-gray-50 bg-gray-100">
-                      <td className="px-4 py-3 text-sm">
-                        {t.usuario_nombre || t.usuario}
-                      </td>
+                {transacciones.map((t) => {
+                  const cortes = getCortesFijos(t);
+                  return (
+                    <tr key={`tx-${t.dptrnntra}`} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm">{t.usuario_nombre || t.usuario}</td>
                       <td className="px-4 py-3 text-sm">{t.dptrndisp}</td>
-                      <td className="px-4 py-3 text-sm">
-                        {t.addispnomb || "-"}
-                      </td>
+                      <td className="px-4 py-3 text-sm">{t.addispnomb || "-"}</td>
                       <td className="px-4 py-3 text-sm">{t.dptrnntra}</td>
-                      <td className="px-4 py-3 text-sm">
-                        {t.adbankncta || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right font-mono">
-                        {Number(t.dptrnimpo).toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {formatDateForDisplay(t.fecha)}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {formatTimeForDisplay(t.hora)}
-                      </td>
+                      <td className="px-4 py-3 text-sm">{t.adbankncta || "-"}</td>
+                      <td className="px-4 py-3 text-sm text-right font-mono">{Number(t.dptrnimpo).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm">{formatDateForDisplay(t.fecha)}</td>
+                      <td className="px-4 py-3 text-sm">{formatTimeForDisplay(t.hora)}</td>
+                      <td className="px-4 py-3 text-sm"></td>
+                      <td className="px-4 py-3 text-sm text-right">{cortes.ctb10}</td>
+                      <td className="px-4 py-3 text-sm text-right font-mono">{cortes.impo10.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm text-right">{cortes.ctb20}</td>
+                      <td className="px-4 py-3 text-sm text-right font-mono">{cortes.impo20.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm text-right">{cortes.ctb50}</td>
+                      <td className="px-4 py-3 text-sm text-right font-mono">{cortes.impo50.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm text-right">{cortes.ctb100}</td>
+                      <td className="px-4 py-3 text-sm text-right font-mono">{cortes.impo100.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm text-right">{cortes.ctb200}</td>
+                      <td className="px-4 py-3 text-sm text-right font-mono">{cortes.impo200.toFixed(2)}</td>
                     </tr>
-                    {t.detalles.map((d, idx) => (
-                      <tr
-                        key={`d-${t.dptrnntra}-${idx}`}
-                        className="hover:bg-gray-50 bg-white"
-                      >
-                        <td
-                          className="px-4 py-2 text-sm italic text-gray-600"
-                          colSpan={8}
-                        >
-                          Denominación: {d.dptrdvlor} — Cantidad: {d.dptrdcant}{" "}
-                          — Importe: {d.dptrdimpo.toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

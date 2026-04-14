@@ -2,19 +2,35 @@
 
 import { useEffect, useState } from "react";
 import { fetchDispositivos } from "@/app/lib/dispositivo-actions";
+import { fetchMonitorCortesBoveda } from "@/app/lib/transaccion-actions";
 import { DispositivoData } from "@/app/lib/definitions";
 import MonitorTable from "@/app/ui/monitor/table";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 export default function MonitorPage() {
   const [dispositivos, setDispositivos] = useState<DispositivoData[]>([]);
+  const [cortesPorDispositivo, setCortesPorDispositivo] = useState<
+    Record<number, number>
+  >({});
+  const [limiteCortes, setLimiteCortes] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const cargarDispositivos = async () => {
       setLoading(true);
-      const data = await fetchDispositivos();
+      const [data, monitor] = await Promise.all([
+        fetchDispositivos(),
+        fetchMonitorCortesBoveda(),
+      ]);
+
+      const mapaCortes: Record<number, number> = {};
+      monitor.items.forEach((item) => {
+        mapaCortes[item.dispositivo] = item.cantidad;
+      });
+
       setDispositivos(data);
+      setCortesPorDispositivo(mapaCortes);
+      setLimiteCortes(monitor.limite);
       setLoading(false);
     };
 
@@ -23,8 +39,19 @@ export default function MonitorPage() {
 
   const handleRefresh = async () => {
     setLoading(true);
-    const data = await fetchDispositivos();
+    const [data, monitor] = await Promise.all([
+      fetchDispositivos(),
+      fetchMonitorCortesBoveda(),
+    ]);
+
+    const mapaCortes: Record<number, number> = {};
+    monitor.items.forEach((item) => {
+      mapaCortes[item.dispositivo] = item.cantidad;
+    });
+
     setDispositivos(data);
+    setCortesPorDispositivo(mapaCortes);
+    setLimiteCortes(monitor.limite);
     setLoading(false);
   };
 
@@ -53,7 +80,11 @@ export default function MonitorPage() {
               <p className="text-gray-500">Cargando dispositivos...</p>
             </div>
           ) : (
-            <MonitorTable dispositivos={dispositivos} />
+            <MonitorTable
+              dispositivos={dispositivos}
+              cortesPorDispositivo={cortesPorDispositivo}
+              limiteCortes={limiteCortes}
+            />
           )}
         </div>
       </div>

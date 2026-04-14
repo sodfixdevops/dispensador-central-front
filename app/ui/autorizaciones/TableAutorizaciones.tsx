@@ -76,7 +76,9 @@ export default function TableAutorizaciones({ usuario }: { usuario: string }) {
                   <td className="px-3 py-3">{item.dpautSeri}</td>
                   <td className="px-3 py-3">{formatFecha(item.dpautFsol)}</td>
                   <td className="px-3 py-3">{item.dpautNdes ?? "-"}</td>
-                  <td className="px-3 py-3">{item.dpautUsrs}</td>
+                  <td className="px-3 py-3">
+                    {item.dpautUsrsNick || item.dpautUsrs || "-"}
+                  </td>
                   <td className="px-3 py-3 space-x-2">
                     <button
                       onClick={() => procesarSolicitud(item.dpautNdes!, 2)}

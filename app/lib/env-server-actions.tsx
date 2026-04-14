@@ -33,6 +33,7 @@ export async function consumirApiBcp(data: {
   typeAccount: string;
   amount: number;
   currencyAmount: string;
+  nroOpe: number;
 }) {
   console.log("📤 [BCP] Iniciando consumo de API BCP...");
   console.log("📤 [BCP] Parámetros recibidos:", {
@@ -42,6 +43,7 @@ export async function consumirApiBcp(data: {
     typeAccount: data.typeAccount,
     amount: data.amount,
     currencyAmount: data.currencyAmount,
+    nroOpe: data.nroOpe,
   });
 
   const config = await getBcpConfig();
@@ -76,6 +78,7 @@ export async function consumirApiBcp(data: {
     typeAccount: data.typeAccount,
     amount: data.amount,
     currencyAmount: data.currencyAmount,
+    nroOpe: data.nroOpe,
   });
 
   console.log("📤 [BCP] Body del request:", requestBody);

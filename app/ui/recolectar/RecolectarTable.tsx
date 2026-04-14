@@ -39,7 +39,7 @@ export default function RecolectarTable({
                 {new Date(t.dptrnftra).toLocaleDateString("es-BO")}
               </td>
 
-              <td className="px-6 py-4">{t.dptrnusrn}</td>
+              <td className="px-6 py-4">{t.dptrnusrnick || t.dptrnusrn}</td>
 
               <td className="px-6 py-4 text-right">
                 {Number(t.dptrnimpo).toFixed(2)}{" "}

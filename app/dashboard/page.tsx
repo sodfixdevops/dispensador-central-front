@@ -56,7 +56,7 @@ export default function DashboardHome() {
       </div>
 
       {/* DEBUG SESSION */}
-      <div className="w-full max-w-4xl mt-6 bg-gray-900 text-green-400 rounded-lg p-4 text-sm overflow-auto">
+      {/*<div className="w-full max-w-4xl mt-6 bg-gray-900 text-green-400 rounded-lg p-4 text-sm overflow-auto">
         <h3 className="text-white font-semibold mb-2">Session (debug)</h3>
 
         {status === "loading" && <p>Cargando sesión…</p>}
@@ -64,7 +64,7 @@ export default function DashboardHome() {
         {status === "authenticated" && (
           <pre>{JSON.stringify(session, null, 2)}</pre>
         )}
-      </div>
+      </div>*/}
 
       <div className="flex justify-center mt-8">
         <Image

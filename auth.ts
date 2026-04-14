@@ -44,6 +44,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           status: result.status,
           message: result.message,
           dispositivo: result.dispositivo,
+          dispositivos: result.dispositivos,
+          liacsseri: result.liacsseri,
         };
       },
     }),
@@ -57,6 +59,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   session: {
     strategy: "jwt",
+    maxAge: 8 * 60 * 60, // 8 horas (timeout absoluto)
+  },
+
+  jwt: {
+    maxAge: 8 * 60 * 60, // 8 horas (timeout absoluto)
   },
 
   callbacks: {
@@ -83,6 +90,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.status = user.status;
         token.message = user.message;
         token.dispositivo = user.dispositivo;
+        token.dispositivos = (user as any).dispositivos;
+        token.liacsseri = (user as any).liacsseri;
       }
       return token;
     },
@@ -95,8 +104,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.status = token.status as number;
       session.user.message = token.message as string;
       session.user.dispositivo = token.dispositivo as any;
+      (session.user as any).dispositivos = token.dispositivos as any;
+      (session.user as any).liacsseri = token.liacsseri as number;
 
       return session;
+    },
+  },
+
+  events: {
+    async signOut(message) {
+      try {
+        const token = (message as any)?.token;
+        const userId = token?.id as string | undefined;
+        const liacsseri = token?.liacsseri as number | undefined;
+        if (!userId) return;
+
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/aduser/session/logout`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ liacsseri, userId }),
+            cache: "no-store",
+          },
+        );
+      } catch (error) {
+        console.error("No se pudo cerrar liacs en signOut event:", error);
+      }
     },
   },
 });

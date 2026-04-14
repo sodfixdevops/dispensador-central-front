@@ -6,7 +6,8 @@ import { lusitana } from "@/app/ui/fonts";
 
 export default function Page() {
   const { data: session } = useSession();
-  const usuario = session?.user?.username || "";
+  const usuario = session?.user?.id || "";
+  const usuarioVisible = session?.user?.username || "";
 
   return (
     <div className="w-full">
@@ -17,9 +18,9 @@ export default function Page() {
       </div>
 
       {/* Usuario */}
-      {usuario && (
+      {usuarioVisible && (
         <div className="mt-2 inline-block rounded-md bg-purple-600 px-3 py-1 text-sm font-semibold text-white shadow-sm">
-          Usuario conectado: {usuario}
+          Usuario conectado: {usuarioVisible}
         </div>
       )}
 
